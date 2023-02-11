@@ -13,29 +13,24 @@ export function SignUpConsultant(){
       DOB:"",
       hearfromus:""
     });
+    
+    //const [conerrors, consetErrors] = useState({
+      //consultantnameerr:"",
+      //consultantnumbererr:"",
+      //consultantemailerr:"",
+      //consultantgendererr:"",
+      //DOBerr:""
+    //});
 
-//consultantnumbererr:number,
-      //consultantemailerr,
-      //consultantgendererr,
-      //DOBerr
-    const [conerrors, consetErrors] = useState({
-      consultantnameerr:"",
-    });
-
-    //get user input from frontend
-    const validatorName = (e)=>{
-
-    }
-
-
+    //const getUserInput =(e) =>{
+      //consetErrors({...prev,[e.target.consultantnameerr]:e.target.value});
+      //const input = consultantnameerr == isNaN;
+        
+    //};
     const getUserInput =(e) =>{
-      consetErrors({...prev,[e.target.consultantnameerr]:e.target.value});
-      const input = consultantnameerr == isNaN;
-          if(input == false){
-            validator();
-          }
+      consetInput(prev=>({...prev,[e.target.name]:e.target.value}))
     };
-  
+    console.log(coninput);
   
     //navigate to another page
     const navigate = useNavigate();
@@ -62,7 +57,7 @@ export function SignUpConsultant(){
               <h3 className= "font-sans font- text-2xl"> 
                 Name: <input name="consultantname" placeholder='Name'onChange={getUserInput}></input>
                 <div>
-                  {validatorName()}
+                  
                   <p>Input only alphabets!</p>
                 </div>
               </h3>

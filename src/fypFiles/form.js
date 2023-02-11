@@ -3,8 +3,8 @@ import {React,useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 
 export function SignUpDiv(){
-  //input is a variable 
-  //setInput is a method
+   //input is an obj that represents the current state of the component, and it has several (variables)properties: consultantname...
+    //setInput is a function that is used to update the STATE of the obj through the obj properties
   const [input, setInput] = useState({
     clientname:"",
     clientgender:"",
