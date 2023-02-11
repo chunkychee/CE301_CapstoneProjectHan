@@ -1,25 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import {BrowserRouter,Routes,Route} from 'react-router-dom';
+import {SignUpDiv} from './fypFiles/form';
+import {Submitted} from './fypFiles/submitted';
+import {SignUpConsultant} from './fypFiles/consultantform';
+import {Consubmitted} from './fypFiles/submittedcon';
 
-function App() {
+
+function App(){
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <BrowserRouter>
+        <Routes>
+          <Route path ="/signup" element={<SignUpDiv/>}/>
+          <Route path ="/submitted" element={<Submitted/>}/>
+          <Route path ="/consultantsignup" element={<SignUpConsultant/>}/>
+          <Route path ="/consultantsubmitted" element={<Consubmitted/>}/>
+        </Routes>
+      </BrowserRouter>
     </div>
-  );
+  )
 }
-
 export default App;
+

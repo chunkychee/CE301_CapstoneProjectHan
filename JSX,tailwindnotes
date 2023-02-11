@@ -1,0 +1,22 @@
+w-screen h-screen #fullscreen
+w-[80vh] #vh=viewportheight 80%
+
+#USESTATE
+export const Submitted = () => {  
+  const [submit,setsubmit] = useState('mario');
+  const [age, setAge] = useState(25);
+
+  const handleClick = () => {
+      setsubmit('your mum');
+      setAge('is 50 yrs old');
+  }
+        
+
+return(
+  <div>
+       <p>{submit} is {age} years old</p>
+      <button onClick={handleClick}>Click me</button>
+  </div>
+);
+
+nodemon and react are on ES6
