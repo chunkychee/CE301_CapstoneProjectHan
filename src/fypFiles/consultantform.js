@@ -49,17 +49,12 @@ export function SignUpConsultant(){
     }
   
     return (
-      <div className = 'w-screen h-screen flex justify-center items-center'>
-        <div className = "bg-blue-300 w-[90vh] h-[95vh]">
+      <form>
             <h1 className = "font-sans font- text-3xl text-center">Join Us Today!</h1>
             <p className = "text-xs text-center">Join us on a path for client empowerment</p>
             <div className = "space-y-4">
               <h3 className= "font-sans font- text-2xl"> 
                 Name: <input name="consultantname" placeholder='Name'onChange={getUserInput}></input>
-                <div>
-                  
-                  <p>Input only alphabets!</p>
-                </div>
               </h3>
               <h3 className= "font-sans font- text-2xl">Number:<input name="consultantnumber" placeholder='HPnumber'onChange={getUserInput}></input></h3>
               <h3 className= "font-sans font- text-2xl">Email:<input name="consultantemail" placeholder='Email'onChange={getUserInput}></input></h3>
@@ -68,9 +63,7 @@ export function SignUpConsultant(){
               <h3 className= "font-sans font- text-2xl">How did you find out about us?:<input name="hearfromus" placeholder='Where did you hear from us?'onChange={getUserInput}></input></h3>
           </div>
           <button onClick={consubmitbtn}>SUBMIT</button>
-  
-        </div>
-      </div>
+      </form>
     )
   }
    

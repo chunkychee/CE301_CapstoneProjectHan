@@ -20,3 +20,7 @@ return(
 );
 
 nodemon and react are on ES6
+
+The false inside the useState parentheses is the initial state value for the conUserErr state variable.
+the initial value of false means that there are NO ERROR with user input when the component is first rendered.
+const [conUserErr, setConUserErr] = useState(false);
