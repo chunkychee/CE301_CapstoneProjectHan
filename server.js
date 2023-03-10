@@ -28,12 +28,13 @@ app.get('/get',(req,res) => {
 
 //correct one //insert data into clientsignup table
 app.post('/addinclientsignup',(req,res) => {
-    const sql = "INSERT INTO clientsignup (clientname,clientgender,clientnumber,clientaddress,clientlifestyle,clientoccupation,clientemail,DOB) VALUES (?)";
+    const sql = "INSERT INTO clientsignup (clientname,clientusername,clientpassword,clientgender,clientnumber,clientlifestyle,clientoccupation,clientemail,DOB) VALUES (?)";
     const values = 
     [req.body.clientname,
+    req.body.clientusername,
+    req.body.clientpassword,
     req.body.clientgender,
     req.body.clientnumber,
-    req.body.clientaddress,
     req.body.clientlifestyle,
     req.body.clientoccupation,
     req.body.clientemail,
@@ -50,7 +51,7 @@ app.post('/addinconsultants',(req,res) => {
     const sql = "INSERT INTO consultantsignup (consultantname,consultantnumber,consultantemail,consultantgender,DOB,hearfromus) VALUES (?)";
     const values = 
     [req.body.consultantname,
-    req.body.consultantnumber,
+     req.body.consultantnumber,
     req.body.consultantemail,
     req.body.consultantgender,
     req.body.DOB,

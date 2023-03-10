@@ -4,6 +4,7 @@ import {SignUpDiv} from './fypFiles/form';
 import {Submitted} from './fypFiles/submitted';
 import {SignUpConsultant} from './fypFiles/consultantform';
 import {Consubmitted} from './fypFiles/submittedcon';
+import {Signin} from './fypFiles/signin';
 
 
 function App(){
@@ -15,6 +16,7 @@ function App(){
           <Route path ="/submitted" element={<Submitted/>}/>
           <Route path ="/consultantsignup" element={<SignUpConsultant/>}/>
           <Route path ="/consultantsubmitted" element={<Consubmitted/>}/>
+          <Route path ="/signin" element={<Signin/>}/>
         </Routes>
       </BrowserRouter>
     </div>

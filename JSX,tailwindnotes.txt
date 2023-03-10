@@ -1,0 +1,44 @@
+w-screen h-screen #fullscreen
+w-[80vh] #vh=viewportheight 80%
+
+#USESTATE
+export const Submitted = () => {  
+  const [submit,setsubmit] = useState('mario');
+  const [age, setAge] = useState(25);
+
+  const handleClick = () => {
+      setsubmit('your mum');
+      setAge('is 50 yrs old');
+  }
+        
+
+return(
+  <div>
+       <p>{submit} is {age} years old</p>
+      <button onClick={handleClick}>Click me</button>
+  </div>
+);
+
+nodemon and react are on ES6
+
+The false inside the useState parentheses is the initial state value for the conUserErr state variable.
+the initial value of false means that there are NO ERROR with user input when the component is first rendered.
+const [conUserErr, setConUserErr] = useState(false);
+
+body{
+    background-image: url('./user.png');
+    position: fixed;
+    min-width: 100%;
+    min-height: 100%;
+    background-size: cover;
+    background-position: center;
+}
+
+.consultant{
+    background-image: url('./consultant.png');
+    position: fixed;
+    min-width: 100%;
+    min-height: 100%;
+    background-size: cover;
+    background-position: center;
+}
