@@ -1,3 +1,5 @@
+import express from "express"
+
 const express = require('express'); //dont convert to ES6
 const mysql = require('mysql');
 const app = express();
@@ -64,6 +66,10 @@ app.post('/addinconsultants',(req,res) => {
 });
 
 
+
+app.listen('3004', () => {
+    console.log('Server started on port 3004');
+})
 app.post('/addin',(req,res) => {
     const sql = "INSERT INTO clientsignup (clientname,clientgender,clientnumber,clientaddress,clientlifestyle,clientoccupation,clientemail,DOB) VALUES (?)";
     const values = 
@@ -74,8 +80,3 @@ app.post('/addin',(req,res) => {
         return res.json("inserted in already");
     });
 });
-
-
-app.listen('3004', () => {
-    console.log('Server started on port 3004');
-})

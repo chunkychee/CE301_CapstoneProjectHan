@@ -25,6 +25,7 @@ export function SignUpDiv(){
         errClientName2:"",
         errClientUsername:"",
         errClientPassword:"",
+        errClientPassword2:"",
         errClientNumber:"",
         errClientNumber2:"",
         errClientLifestyle:"",
@@ -58,15 +59,26 @@ export function SignUpDiv(){
         errClientUsername:value.length<8?"Input must be more than 8 characters":""
       }
     }));
+  
    }else if(name === "clientpassword"){
-   //const value = visible? "text":"password"
-    const regex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
-    setInput(prev => ({
-      ...prev, [name]:value, errors: {
-        ...prev.errors,
-        errClientPassword:regex.test(value)?"Password must contain at least 1 number and 1 special character":""
-      }
-    }));
+    const specialCharRegex = /[!@#$%^&*]/;
+    const capitalLetterRegex = /[A-Z]/;
+    const numberRegex = /[0-9]/;
+    if((specialCharRegex.test(value) && capitalLetterRegex.test(value) && numberRegex.test(value)) &&value.length>8){
+      setInput(prev => ({
+        ...prev, [name]:value, errors: {
+          ...prev.errors,
+          errClientPassword2:""
+        }
+      }));
+    }else{
+      setInput(prev => ({
+        ...prev, [name]:value, errors: {
+          ...prev.errors,
+          errClientPassword2:"Password at least 1 capital letter,1 symbol and 1 number"
+        }
+      }));
+     }
    }else if(name === "clientgender"){
     setInput(prev => ({
       ...prev, [name]:value, errors: {
@@ -146,7 +158,7 @@ export function SignUpDiv(){
 
   return (
       <div className = "h-screen bg-gradient-to-r from-purple-500 to-pink-500 grid place-content-center">
-        <div className='h-full bg-gradient-to-r from-sky-500 to-indigo-500 border-4 border-white-500/100'>
+        <div className='h-fit w-fit bg-gradient-to-r from-sky-700 to-indigo-700 border-4 border-white-500/100'>
          <form onSubmit={submitbtn}>
           <div>
             <h1 className = "font-sans font- text-3xl text-center">Get started with us today!</h1>
@@ -165,8 +177,12 @@ export function SignUpDiv(){
           </div>
 
           <div className='relative'>
-            <h3 className= "font-sans font- text-2xl">Password:<input name="clientpassword" type={visible? "password" : "text"} placeholder='Password'onChange={handleEvent}></input></h3>
+            <h3 className= "font-sans font- text-2xl">Password:<input name="clientpassword" type={visible? "password" : "text"} placeholder='Password'onChange={handleEvent}>
+              
+            </input></h3>
             {input.clientpassword === ""?<span className='text-red-500'>{input.errors.errClientPassword}</span> :""}<br/>
+            {input.clientpassword?<span className='text-red-500'>{input.errors.errClientPassword2}</span> :""}<br/>
+
             <div className='text-2xl absolute top-1 right-12 w-10' onClick={() => setvisible(!visible)}>
             {visible? <AiFillEyeInvisible/>:<AiFillEye/>}
             </div>

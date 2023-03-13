@@ -42,3 +42,7 @@ body{
     background-size: cover;
     background-position: center;
 }
+
+#how to put bg images in viewpoer: "bg-[url('../src/consultant.png')]"
+
+tailwind css margin and padding is the same 

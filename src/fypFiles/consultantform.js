@@ -4,8 +4,6 @@ import {useNavigate} from 'react-router-dom';
 import { BiMale,BiFemale } from 'react-icons/bi';
 import moment from 'moment';
 
-
-
 export function SignUpConsultant(){
     //coninput is an obj that represents the current state of the component, and it has several (variables)properties: consultantname...
     //consetInput is a function that is used to update the STATE of the obj through the obj properties
@@ -105,9 +103,10 @@ export function SignUpConsultant(){
       }    
     }
     return (
-      <div>
-          <h1 className = "font-sans font- text-3xl text-center">Join Us Today!</h1>
+      <div className="static">
+          <div className = " font-sans font- text-3xl text-center">Join Us Today!
             <p className = "text-xs text-center">Join us on a path for client empowerment</p>
+          </div>
             <div className = "space-y-4 flex justify-center">
             <form onSubmit={consubmitbtn}>
               <h3 className= "font-sans text-2xl w-96 mt-9">Name:<input name="consultantname" placeholder='Name'onChange={handleEvent}></input></h3>
