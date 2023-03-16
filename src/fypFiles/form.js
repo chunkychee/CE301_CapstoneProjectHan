@@ -9,6 +9,7 @@ export function SignUpDiv(){
    //input is an obj that represents the current state of the component, and it has several (variables)properties: consultantname...
     //setInput is a function that is used to update the STATE of the obj through the obj properties
     const [visible, setvisible] = useState(true);
+    const [err, setError] = useState(null);
 
     const [input, setInput] = useState({
     clientname:"",    
@@ -133,10 +134,10 @@ export function SignUpDiv(){
     e.preventDefault();
     if(input.clientname && input.clientusername && input.clientpassword && input.clientgender && input.clientnumber && input.clientlifestyle && input.clientoccupation && input.clientemail && input.DOB !==""){
       try{
-        navigate("/submitted")
         await axios.post("http://localhost:3004/addinclientsignup",input)
+        navigate("/submitted")
       }catch(err){
-        console.log(err)
+        setError(err.response.data)
       }
     }else{
       setInput(prev => ({
@@ -220,6 +221,8 @@ export function SignUpDiv(){
            <h3 className = "font-sans font- text-2xl">Email:<input name="clientemail" placeholder='Email Address'onChange={handleEvent}></input></h3>
            {input.clientemail === ""?<span className='text-red-500'>{input.errors.errClientEmail}</span> :""}<br/>
            {!(/[a-zA-Z0-0.%+-]+@[a-z0-9-]+\.[a-z]{2,8}(.[a-z{2,8}])?/).test(input.clientemail)?<span className='text-red-500'>{input.errors.errClientEmail2}</span> :""}<br/>
+           {err && <span>Email has been taken!</span>}
+
           </div>
 
           <div>

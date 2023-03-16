@@ -10,7 +10,6 @@ export const Signin = () => {
         OTP:"",
         clickoncon:false,
     })
-
     const UserFieldHandle=(e)=>{
         const click = e.target.name;
         const clickValue = e.target.value;
@@ -26,8 +25,6 @@ export const Signin = () => {
                }));
         }
     }
-
-    
 
   return (
     <div className='h-screen w-screen grid place-content-center'>{/*parent div*/}

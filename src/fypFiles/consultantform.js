@@ -3,15 +3,21 @@ import {React,useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import { BiMale,BiFemale } from 'react-icons/bi';
 import moment from 'moment';
+import {AiFillEye,AiFillEyeInvisible} from 'react-icons/ai';
 
 export function SignUpConsultant(){
     //coninput is an obj that represents the current state of the component, and it has several (variables)properties: consultantname...
     //consetInput is a function that is used to update the STATE of the obj through the obj properties
     //e.value.target -> obj -> consetInput(obj) 
+    const [err, setError] = useState(null);
+
+    const [visible, setvisible] = useState(true);
+
     const [coninput, consetInput] = useState({
       consultantname:"",
       consultantnumber:"",
       consultantemail:"",
+      consultantpassword:"",
       consultantgender:"",
       DOB:"",
       hearfromus:"",
@@ -22,6 +28,8 @@ export function SignUpConsultant(){
         errconsultantnumber2:"",
         errconsultantemail:"",
         errconsultantemail2:"",
+        errconsultantpassword:"",
+        errconsultantpassword2:"",
         errconsultantgender:"",
         errDOB:""
       }
@@ -53,7 +61,27 @@ export function SignUpConsultant(){
           errconsultantemail:!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(value)?"Email not valid":""
         }
       }));
-    }else if(name === "consultantgender"){
+    }else if(name === "consultantpassword"){
+      const specialCharRegex = /[!@#$%^&*]/;
+      const capitalLetterRegex = /[A-Z]/;
+      const numberRegex = /[0-9]/;
+      if((specialCharRegex.test(value) && capitalLetterRegex.test(value) && numberRegex.test(value)) &&value.length>8){
+        consetInput(prev => ({
+          ...prev, [name]:value, errors: {
+            ...prev.errors,
+            errconsultantpassword2:""
+          }
+        }));
+      }else{
+        consetInput(prev => ({
+          ...prev, [name]:value, errors: {
+            ...prev.errors,
+            errconsultantpassword2:"Password at least 1 capital letter,1 symbol and 1 number"
+          }
+        }));
+       }
+    
+      }else if(name === "consultantgender"){
       consetInput(prev => ({
         ...prev, [name]:value, errors: {
           ...prev.errors,
@@ -84,10 +112,10 @@ export function SignUpConsultant(){
       if(coninput.consultantname && coninput.consultantemail && coninput.consultantnumber && coninput.consultantgender && coninput.DOB !== ""){
         try{
           console.log(coninput)
-          navigate("/consultantsubmitted")
           await axios.post("http://localhost:3004/addinconsultants",coninput)
+          navigate("/consultantsubmitted")
         }catch(err){
-         console.log(err);
+          setError(err.response.data)
         }
       }else{
         consetInput(prev => ({
@@ -97,6 +125,7 @@ export function SignUpConsultant(){
             errconsultantnumber2: "Input field cant be empty",
             errconsultantemail2: "Input field cant be empty",  
             errconsultantgender: "Select a gender",
+            errconsultantpassword: "Password field cant be empty",
             errDOB: "Date Of Birth cant be empty",
           }
         }));      
@@ -118,10 +147,20 @@ export function SignUpConsultant(){
               {!(/^[0-9\b]+$/).test(coninput.consultantnumber)?<span className='text-red-500'>{coninput.errors.errconsultantnumber}</span> :""}
               {coninput.consultantnumber===""?<span className='text-red-500'>{coninput.errors.errconsultantnumber2}</span> :""}<br/>
 
-              <h3 className= "font-sans font- text-2xl w-96 mt-3">Email:<input type ="email" name="consultantemail" placeholder='Email' onChange={handleEvent}></input></h3>
+              <h3 className= "font-sans font- text-2xl w-96 mt-3">Email:<input type ="email" name="consultantemail" onChange={handleEvent}></input></h3>
               {!(/[a-zA-Z0-0.%+-]+@[a-z0-9-]+\.[a-z]{2,8}(.[a-z{2,8}])?/).test(coninput.consultantemail)?<span className='text-red-500'>{coninput.errors.errconsultantemail}</span> :""}<br/>
               {coninput.consultantemail === ""?<span className='text-red-500'>{coninput.errors.errconsultantemail2}</span> :""}
+              {err && <span>Email has been taken!</span>}
 
+              <div className='relative'>
+              <h3 className= "font-sans font- text-2xl">Password:<input name="consultantpassword" type={visible? "password" : "text"} onChange={handleEvent}> 
+              </input></h3>
+              {coninput.consultantpassword === ""?<span className='text-red-500'>{coninput.errors.errconsultantpassword}</span> :""}<br/>
+              {coninput.consultantpassword?<span className='text-red-500'>{coninput.errors.errconsultantpassword2}</span> :""}<br/>
+                <div className='text-2xl absolute top-1 right-0 w-10' onClick={() => setvisible(!visible)}>
+                {visible? <AiFillEyeInvisible/>:<AiFillEye/>}
+                </div>
+              </div>
               <h3 className= "font-sans font-text-2xl w-96 mt-3">Gender:
               <BiMale/><input type ="radio" name="consultantgender" value="M"checked={coninput.consultantgender === "M"} onChange={handleEvent}></input>
               <BiFemale/><input type ="radio" name="consultantgender"value ="F"checked={coninput.consultantgender === "F"}onChange={handleEvent}></input><br/>
