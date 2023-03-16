@@ -10,6 +10,7 @@ export const Submitted = () => {
       setsubmit('your mum');
       setAge('is 50 yrs old');
   }
+}
         
 
 return(
@@ -25,24 +26,69 @@ The false inside the useState parentheses is the initial state value for the con
 the initial value of false means that there are NO ERROR with user input when the component is first rendered.
 const [conUserErr, setConUserErr] = useState(false);
 
-body{
-    background-image: url('./user.png');
-    position: fixed;
-    min-width: 100%;
-    min-height: 100%;
-    background-size: cover;
-    background-position: center;
-}
-
-.consultant{
-    background-image: url('./consultant.png');
-    position: fixed;
-    min-width: 100%;
-    min-height: 100%;
-    background-size: cover;
-    background-position: center;
-}
-
 #how to put bg images in viewpoer: "bg-[url('../src/consultant.png')]"
 
-tailwind css margin and padding is the same 
+JWT(JSON web token)
+
+
+app.post('/addinclientsignup', async (req, res) => {
+    try {
+      const query = "SELECT * FROM clientsignup WHERE email = ?";
+      db.query(query, [req.body.clientemail], async (err, data) => {
+        if (err) return res.json(err);
+        if (data.length) {
+          // If email exists in the database, return an error message
+          return res.status(409).json({ message: "Email already exists" });
+        } else {
+          // If email does not exist in the database, hash the password and insert the client details
+          const salt = await bcrypt.genSalt();
+          const hashedpassword = await bcrypt.hash(req.body.clientpassword, salt);
+          const sql = "INSERT INTO clientsignup (clientname, clientusername, clientpassword, clientgender, clientnumber, clientlifestyle, clientoccupation, clientemail, DOB) VALUES (?)";
+          const values = [
+            req.body.clientname,
+            req.body.clientusername,
+            hashedpassword,
+            req.body.clientgender,
+            req.body.clientnumber,
+            req.body.clientlifestyle,
+            req.body.clientoccupation,
+            req.body.clientemail,
+            req.body.DOB
+          ];
+  
+          db.query(sql, [values], (err, data) => {
+            if (err) return res.json(err);
+            return res.status(201).json({ message: "Client signup successful" });
+          });
+        }
+      });
+    } catch (err) {
+      return res.json(err);
+    }
+  });
+
+  app.post('/addinclientsignup', async (req, res) => {
+    try { 
+      const salt = await bcrypt.genSalt();
+      const hashedpassword = await bcrypt.hash(req.body.clientpassword, salt);
+      const sql = "INSERT INTO clientsignup (clientname, clientusername, clientpassword, clientgender, clientnumber, clientlifestyle, clientoccupation, clientemail, DOB) VALUES (?)";
+      const values = [
+        req.body.clientname,
+        req.body.clientusername,
+        hashedpassword,
+        req.body.clientgender,
+        req.body.clientnumber,
+        req.body.clientlifestyle,
+        req.body.clientoccupation,
+        req.body.clientemail,
+        req.body.DOB
+      ];
+  
+      db.query(sql, [values], (err, data) => {
+        if (err) return res.json(err);
+        return res.status(201).json({ message: "Client signup successful" });
+      });
+    } catch (err) {
+      return res.json(err);
+    }
+  });
