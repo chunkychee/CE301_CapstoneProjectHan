@@ -31,64 +31,31 @@ const [conUserErr, setConUserErr] = useState(false);
 JWT(JSON web token)
 
 
-app.post('/addinclientsignup', async (req, res) => {
-    try {
-      const query = "SELECT * FROM clientsignup WHERE email = ?";
-      db.query(query, [req.body.clientemail], async (err, data) => {
-        if (err) return res.json(err);
-        if (data.length) {
-          // If email exists in the database, return an error message
-          return res.status(409).json({ message: "Email already exists" });
-        } else {
-          // If email does not exist in the database, hash the password and insert the client details
-          const salt = await bcrypt.genSalt();
-          const hashedpassword = await bcrypt.hash(req.body.clientpassword, salt);
-          const sql = "INSERT INTO clientsignup (clientname, clientusername, clientpassword, clientgender, clientnumber, clientlifestyle, clientoccupation, clientemail, DOB) VALUES (?)";
-          const values = [
-            req.body.clientname,
-            req.body.clientusername,
-            hashedpassword,
-            req.body.clientgender,
-            req.body.clientnumber,
-            req.body.clientlifestyle,
-            req.body.clientoccupation,
-            req.body.clientemail,
-            req.body.DOB
-          ];
-  
-          db.query(sql, [values], (err, data) => {
-            if (err) return res.json(err);
-            return res.status(201).json({ message: "Client signup successful" });
-          });
-        }
-      });
-    } catch (err) {
-      return res.json(err);
-    }
-  });
 
-  app.post('/addinclientsignup', async (req, res) => {
-    try { 
-      const salt = await bcrypt.genSalt();
-      const hashedpassword = await bcrypt.hash(req.body.clientpassword, salt);
-      const sql = "INSERT INTO clientsignup (clientname, clientusername, clientpassword, clientgender, clientnumber, clientlifestyle, clientoccupation, clientemail, DOB) VALUES (?)";
-      const values = [
-        req.body.clientname,
-        req.body.clientusername,
-        hashedpassword,
-        req.body.clientgender,
-        req.body.clientnumber,
-        req.body.clientlifestyle,
-        req.body.clientoccupation,
-        req.body.clientemail,
-        req.body.DOB
-      ];
-  
-      db.query(sql, [values], (err, data) => {
-        if (err) return res.json(err);
-        return res.status(201).json({ message: "Client signup successful" });
-      });
-    } catch (err) {
-      return res.json(err);
+//CLIENT LOGIN  
+  app.post('/login', (req, res) => { 
+    const query = "SELECT * FROM clientsignup WHERE clientusername = ?";
+    const username = req.body.clientusername;
+    const password = req.body.clientpassword;
+    try {
+        db.query(query, [username], async (err, result) => {
+            if (err) {
+                res.status(500).send({ err: err });
+            } else if (result.length == 0) {
+                res.status(401).send("INCORRECT USERNAME OR PASSWORD");
+            } else {
+                const isPasswordCorrect = await bcrypt.compare(password, result[0].clientpassword);
+                if (!isPasswordCorrect) {
+                    res.status(401).send("INCORRECT PASSWORD");
+                } else {
+                    res.send(result);
+                    console.log(result);
+                }
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: error });
     }
-  });
+});
+  

@@ -26,10 +26,6 @@ db.getConnection((err) => {
     console.log('Mysql connected.');
 });
 
-app.get('/get',(req,res) => {
-     res.send("yo connected");
-})
-
 //correct one //insert data into clientsignup table
 app.post('/addinclientsignup', async (req, res) => {
     try {
@@ -72,7 +68,6 @@ app.post('/addinclientsignup', async (req, res) => {
     }
   });
 
-
   app.post('/addinconsultants', async (req, res) => {
     try {
       const query = "SELECT * FROM consultantsignup WHERE consultantemail = ?";
@@ -87,6 +82,7 @@ app.post('/addinclientsignup', async (req, res) => {
           // If email does not exist in the database, hash the password and insert the client details
           const salt = await bcrypt.genSalt();
           const hashedpassword = await bcrypt.hash(req.body.consultantemail, salt);
+          console.log(hashedpassword)
           const sql = "INSERT INTO consultantsignup (consultantname,consultantnumber,consultantemail,consultantpassword,consultantgender,DOB,hearfromus) VALUES (?)";
         const values = 
         [req.body.consultantname,
@@ -111,7 +107,63 @@ app.post('/addinclientsignup', async (req, res) => {
     }
   });
 
-
+  
+//CLIENT LOGIN  
+app.post('/login', (req, res) => { 
+  const query = "SELECT * FROM clientsignup WHERE clientusername = ?";
+  const username = req.body.clientusername;
+  const password = req.body.clientpassword;
+  try {
+      db.query(query, [username], async (err, result) => {
+          if (err) {
+              res.status(500).send({ err: err });
+          } else if (result.length == 0) {
+              res.status(401).send("INCORRECT USERNAME OR PASSWORD");
+          } else {
+              const isPasswordCorrect = await bcrypt.compare(password, result[0].clientpassword);
+              console.log(isPasswordCorrect)
+              if (!isPasswordCorrect) {
+                  res.status(401).send("INCORRECT PASSWORD");
+              } else {
+                  res.send(result);
+                  console.log(result);
+              }
+          }
+      });
+  } catch (error) {
+      console.log(error);
+      res.status(500).send({ error: error });
+  }
+});
+  
+//CONSULTANT LOGIN
+app.post('/conlogin', (req, res) => { 
+  const query = "SELECT * FROM consultantsignup WHERE consultantemail = ?";
+  const username = req.body.consultantemail;
+  const password = req.body.consultantpassword;
+  try {
+      db.query(query, [username], async (err, result) => {
+          if (err) {
+            res.status(500).send({ error: 'An error occurred while processing your request. Please try again later.' });
+          } else if (result.length == 0) {
+              res.status(401).send("INCORRECT USERNAME OR PASSWORD");
+          } else {
+              const isPasswordCorrect = await bcrypt.compare(password, result[0].consultantpassword);
+              console.log(isPasswordCorrect)
+              if (!isPasswordCorrect) {
+                  res.status(401).send("INCORRECT PASSWORD");
+              } else {
+                  res.send(result);
+                  console.log(result);
+              }
+          }
+      });
+  } catch (error) {
+      console.log(error);
+      res.status(500).send({ error: error });
+  }
+});
+  
   
 app.listen('3004', () => {
     console.log('Server started on port 3004');
@@ -126,3 +178,5 @@ app.post('/addin',(req,res) => {
         return res.json("inserted in already");
     });
 });
+
+
