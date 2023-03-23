@@ -9,8 +9,6 @@ export function SignUpConsultant(){
     //coninput is an obj that represents the current state of the component, and it has several (variables)properties: consultantname...
     //consetInput is a function that is used to update the STATE of the obj through the obj properties
     //e.value.target -> obj -> consetInput(obj) 
-    const [err, setError] = useState(null);
-
     const [visible, setvisible] = useState(true);
 
     const [coninput, consetInput] = useState({
@@ -31,7 +29,8 @@ export function SignUpConsultant(){
         errconsultantpassword:"",
         errconsultantpassword2:"",
         errconsultantgender:"",
-        errDOB:""
+        errDOB:"",
+        errEmailTaken:""
       }
     });
     
@@ -111,11 +110,14 @@ export function SignUpConsultant(){
       e.preventDefault();
       if(coninput.consultantname && coninput.consultantemail && coninput.consultantnumber && coninput.consultantgender && coninput.DOB !== ""){
         try{
-          console.log(coninput)
           await axios.post("http://localhost:3004/addinconsultants",coninput)
           navigate("/consultantsubmitted")
         }catch(err){
-          setError(err.response.data)
+          consetInput(prev => ({
+            ...prev, errors: {
+              errEmailTaken: err.response.data.message
+            }
+          }));
         }
       }else{
         consetInput(prev => ({
@@ -150,7 +152,7 @@ export function SignUpConsultant(){
               <h3 className= "font-sans font- text-2xl w-96 mt-3">Email:<input type ="email" name="consultantemail" onChange={handleEvent}></input></h3>
               {!(/[a-zA-Z0-0.%+-]+@[a-z0-9-]+\.[a-z]{2,8}(.[a-z{2,8}])?/).test(coninput.consultantemail)?<span className='text-red-500'>{coninput.errors.errconsultantemail}</span> :""}<br/>
               {coninput.consultantemail === ""?<span className='text-red-500'>{coninput.errors.errconsultantemail2}</span> :""}
-              {err && <span>Email has been taken!</span>}
+              {coninput.consultantemail && <span className='text-red-500'>{coninput.errors.errEmailTaken}</span>}
 
               <div className='relative'>
               <h3 className= "font-sans font- text-2xl">Password:<input name="consultantpassword" type={visible? "password" : "text"} onChange={handleEvent}> 
