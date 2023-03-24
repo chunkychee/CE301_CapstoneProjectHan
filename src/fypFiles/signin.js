@@ -67,7 +67,7 @@ export const Signin = () => {
     if (ChangeFieldlogin.consultantemail && ChangeFieldlogin.consultantpassword !== "") {
       // Consultant login
       try {
-        await axios.post("http://localhost:3004/login", ChangeFieldlogin);
+        await axios.post("http://localhost:3004/conlogin", ChangeFieldlogin);
         navigate("/submitted");
       } catch (err) {
         // Handle errors
@@ -83,7 +83,7 @@ export const Signin = () => {
     } else if (ChangeFieldlogin.clientusername && ChangeFieldlogin.clientpassword !=="") {
       // Client login
       try {
-        await axios.post("http://localhost:3004/conlogin", ChangeFieldlogin);
+        await axios.post("http://localhost:3004/login", ChangeFieldlogin);
         navigate("/submitted");
       } catch (err) {
         // Handle errors
