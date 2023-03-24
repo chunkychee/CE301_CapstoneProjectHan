@@ -136,8 +136,9 @@ app.post('/login', (req, res) => {
   }
 });
   
+
 //CONSULTANT LOGIN
-app.post('/conlogin', (req, res) => { 
+app.post('/conlogin', (req, res) => {
   const query = "SELECT * FROM consultantsignup WHERE consultantemail = ?";
   const username = req.body.consultantemail;
   const password = req.body.consultantpassword;
