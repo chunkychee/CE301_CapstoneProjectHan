@@ -81,7 +81,7 @@ app.post('/addinclientsignup', async (req, res) => {
         } else {
           // If email does not exist in the database, hash the password and insert the client details
           const salt = await bcrypt.genSalt();
-          const hashedpassword = await bcrypt.hash(req.body.consultantemail, salt);
+          const hashedpassword = await bcrypt.hash(req.body.consultantpassword, salt);
           console.log(hashedpassword)
           const sql = "INSERT INTO consultantsignup (consultantname,consultantnumber,consultantemail,consultantpassword,consultantgender,DOB,hearfromus) VALUES (?)";
         const values = 
