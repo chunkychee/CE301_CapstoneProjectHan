@@ -43,8 +43,8 @@ export const Signin = () => {
                   errclientpassword:""
                  }
                }));
-              }
-            }
+          }
+    }
 
   const fieldchange=(e)=>{
     const click = e.target.name;
@@ -60,6 +60,14 @@ export const Signin = () => {
         [click]: clickValue,
       }));
      }    
+  }
+  const directuserbtn=(e)=>{
+    const click = e.target.name;
+    if(click === "usersignup"){
+      navigate("/signup");
+    }else{
+      navigate("/consultantsignup")
+    }
   }
   const navigate = useNavigate()
   const handleSubmit = async (e) => {
@@ -113,10 +121,10 @@ export const Signin = () => {
   return (
     <div className='h-screen w-screen grid place-content-center'>{/*parent div*/}
        <form onSubmit={handleSubmit}> 
-        <div className='h-96 content-between grid grid-cols bg-gradient-to-r from-cyan-500 to-blue-500 '>{/*child div*/}
+        <div className='m-2 h-auto content-between grid grid-cols bg-gradient-to-r from-cyan-500 to-blue-500 '>{/*child div*/}
             <div className='col-start-1 col-span-2 flex justify-evenly'>
                 <button name="userbtn" type="button" onClick={UserFieldHandle} 
-                className="w-48 m-2 font-semibold text-3xl text-white  bg-gradient-to-r from-violet-400 to-fuchsia-700 hover:from-purple-500 hover:to-pink-500">
+                className="m-2 font-semibold text-3xl text-white  bg-gradient-to-r from-violet-400 to-fuchsia-700 hover:from-purple-500 hover:to-pink-500">
                     User Sign in
                 </button>
 
@@ -156,20 +164,32 @@ export const Signin = () => {
                   </div>
                 )}
                 {ChangeFieldlogin.errors.errLoginMsg && <span className=' text-red-500'>{ChangeFieldlogin.errors.errLoginMsg}</span>}<br/>
-                <button className = "mt-3 ml-1 w-44 h-10  text-white font-semibold bg-green-700 rounded-full"> Sign In</button>
+                <button className = "ml-1 w-44 h-10  text-white font-semibold bg-green-700 rounded-full"> Sign In</button>
             </div>
 
-            <div className=' col-start-1 col-span-2 m-2 flex justify-evenly '>
-              <p className='text-xs font-light text-center'>Looking for a fuss free way of getting insured?</p>
-              <button name="conbtn" type="button" onClick={UserFieldHandle} 
-              className=" font-semibold text-3xl text-white m-2  bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-sky-500 hover:to-indigo-500">
-                    Join us!
-                </button>
-        
-              <p className='text-xs font-light text-center'>Looking for a purpose in your career? Join our growing community of consultants!</p>
-              <button name="conbtn" type="button" onClick={UserFieldHandle} className="font-semibold text-3xl text-white m-2  bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-sky-500 hover:to-indigo-500">
+            <div className='col-start-1 col-span-2 flex'>
+              <div className='grid justify-items-center'>
+                <div className='m-3'>
+                  <p className='text-xs font-light text-center'>Looking for a fuss free way of getting insured?</p>
+                </div>
+                <div className=' '>
+                    <button name="usersignup" type="button" onClick={directuserbtn} 
+                      className="p-2 font-semibold text-3xl text-white bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-sky-500 hover:to-indigo-500">
+                      Join us!
+                    </button>
+                </div>
+              </div>
+
+              <div className='grid justify-items-center'> 
+              <div className='m-3 '>
+                  <p className='text-xs font-light'>Looking for a purpose in your career? Join our growing community of consultants!</p>
+              </div> 
+              <div className=''>
+                <button name="consignup" type="button" onClick={directuserbtn} className="p-2 font-semibold text-3xl text-white bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-sky-500 hover:to-indigo-500">
                     Sign Up
                 </button>
+              </div>
+              </div>
             </div>
         </div>
         </form>
