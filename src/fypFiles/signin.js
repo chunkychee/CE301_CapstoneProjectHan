@@ -61,14 +61,6 @@ export const Signin = () => {
       }));
      }    
   }
-  const directuserbtn=(e)=>{
-    const click = e.target.name;
-    if(click === "usersignup"){
-      navigate("/signup");
-    }else{
-      navigate("/consultantsignup")
-    }
-  }
   const navigate = useNavigate()
   const handleSubmit = async (e) => {
     e.preventDefault();
