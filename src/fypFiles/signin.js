@@ -46,6 +46,15 @@ export const Signin = () => {
           }
     }
 
+    const directuserbtn=(e)=>{
+      const click = e.target.name;
+      if(click === "usersignup"){
+        navigate("/signup");
+      }else{
+        navigate("/consultantsignup")
+      }
+    }
+
   const fieldchange=(e)=>{
     const click = e.target.name;
     const clickValue = e.target.value;
@@ -60,14 +69,6 @@ export const Signin = () => {
         [click]: clickValue,
       }));
      }    
-  }
-  const directuserbtn=(e)=>{
-    const click = e.target.name;
-    if(click === "usersignup"){
-      navigate("/signup");
-    }else{
-      navigate("/consultantsignup")
-    }
   }
   const navigate = useNavigate()
   const handleSubmit = async (e) => {
