@@ -165,7 +165,6 @@ export const Signin = () => {
                 )}
                 {ChangeFieldlogin.errors.errLoginMsg && <span className=' text-red-500'>{ChangeFieldlogin.errors.errLoginMsg}</span>}<br/>
                 <button className = "ml-1 w-44 h-10  text-white font-semibold bg-green-700 rounded-full"> Sign In</button>
-                <button className = "ml-1 w-44 h-10  text-white font-semibold bg-green-700 rounded-full"> Sign In</button>
             </div>
 
             <div className='col-start-1 col-span-2 flex'>
