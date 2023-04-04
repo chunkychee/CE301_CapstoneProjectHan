@@ -6,13 +6,13 @@ import {useNavigate} from 'react-router-dom';
 export const Signin = () => {
  
   const [ChangeFieldlogin, SetChangeFieldLogin] = useState({
-        clientusername:"", 
+        clientemail:"", 
         clientpassword:"",
         consultantemail:"",
         consultantpassword:"",
         clickoncon:false,
         errors:{
-          errclientusername:"",
+          errclientemail:"",
           errclientpassword:"",
           errconemail:"",
           errconsultantpassword:"",
@@ -24,7 +24,7 @@ export const Signin = () => {
          if(click === "conbtn"){
             SetChangeFieldLogin(prevState => ({
                 ...prevState,
-                clientusername:"",
+                clientemail:"",
                 clientpassword:"",
                 clickoncon: true,errors: {
                   ...prevState.errors,
@@ -39,7 +39,7 @@ export const Signin = () => {
                 consultantpassword:"",
                 clickoncon: false,errors: {
                   ...prevState.errors,
-                  errclientusername:"",    
+                  errclientemail:"",    
                   errclientpassword:""
                  }
                }));
@@ -88,11 +88,11 @@ export const Signin = () => {
         }));
         console.log(err)
       }
-    } else if (ChangeFieldlogin.clientusername && ChangeFieldlogin.clientpassword !=="") {
+    } else if (ChangeFieldlogin.clientemail && ChangeFieldlogin.clientpassword !=="") {
       // Client login
       try {
         await axios.post("http://localhost:3004/login", ChangeFieldlogin);
-        navigate("/submitted");
+        navigate("/usersite");
       } catch (err) {
         // Handle errors
         SetChangeFieldLogin((prev) => ({
@@ -109,7 +109,7 @@ export const Signin = () => {
         ...prev,
         errors: {
           ...prev.errors,
-          errclientusername: "Username field is empty",
+          errclientemail: "Email field is empty",
           errclientpassword: "Password field is empty",
           errconemail: "Username field is empty",
           errconsultantpassword: "Password field is empty",
@@ -138,9 +138,9 @@ export const Signin = () => {
             <div className='place-self-center col-start-1 col-span-2'>
                 {!ChangeFieldlogin.clickoncon &&(
                   <div className=''>
-                    <p className='indent-12'>Username:</p>
-                    <input  type="text" name ="clientusername" onChange={fieldchange}/><br/>
-                    {ChangeFieldlogin.clientusername ===""?<span className='text-red-500'>{ChangeFieldlogin.errors.errclientusername}</span> :""}<br/>
+                    <p className='indent-12'>Email Address:</p>
+                    <input  type="text" name ="clientemail" onChange={fieldchange}/><br/>
+                    {ChangeFieldlogin.clientemail ===""?<span className='text-red-500'>{ChangeFieldlogin.errors.errclientemail}</span> :""}<br/>
 
                     <p className='mt-4 indent-14'>Password:</p>
                     <input type="password" name ="clientpassword" onChange={fieldchange}/><br/>

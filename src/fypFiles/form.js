@@ -11,8 +11,7 @@ export function SignUpDiv(){
     const [visible, setvisible] = useState(true);
  
     const [input, setInput] = useState({
-    clientname:"",    
-    clientusername:"", 
+    clientname:"",
     clientpassword:"",
     clientgender:"",
     clientnumber:"",
@@ -23,7 +22,6 @@ export function SignUpDiv(){
     errors:{
         errClientName:"",
         errClientName2:"",
-        errClientUsername:"",
         errClientPassword:"",
         errClientPassword2:"",
         errClientNumber:"",
@@ -51,14 +49,7 @@ export function SignUpDiv(){
        errClientName2: value.length<3?"Input must be more than 3 Alphabets":""
        }
     }));
-   }else if(name === "clientusername"){
-    setInput(prev => ({
-      ...prev,[name]:value,errors: {
-        ...prev.errors,
-        errClientUsername:value.length<8?"Input must be more than 8 characters":""
-      }
-    }));
-  
+   
    }else if(name === "clientpassword"){
     const specialCharRegex = /[!@#$%^&*]/;
     const capitalLetterRegex = /[A-Z]/;
@@ -148,7 +139,6 @@ export function SignUpDiv(){
         ...prev, errors: {
           ...prev.errors,
           errClientName2:"Name field cant be empty",
-          errClientUsername:"Username field cant be empty",
           errClientPassword:"Password field cant be empty",
           errClientGender:"Select a gender", 
           errClientNumber:"Mobile number field cant be empty",
@@ -174,11 +164,6 @@ export function SignUpDiv(){
            <h3 className= "font-sans font- text-2xl">Name: <input name="clientname" placeholder='Name'onChange={handleEvent}></input></h3>
            {input.clientname.length<3?<span className='text-red-500'>{input.errors.errClientName2}</span> :""}
            {!/^[a-zA-Z]+$/.test(input.clientname)?<span className='text-red-500'>{input.errors.errClientName}</span> :""}<br/>
-          </div>
-
-          <div>
-          <h3 className= "font-sans font- text-2xl">Username: <input name="clientusername" placeholder='Username'onChange={handleEvent}></input></h3>
-          {input.clientusername.length<8?<span className='text-red-500'>{input.errors.errClientUsername}</span> :""}<br/>
           </div>
 
           <div className='relative'>

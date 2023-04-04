@@ -27,7 +27,7 @@ the initial value of false means that there are NO ERROR with user input when th
 const [conUserErr, setConUserErr] = useState(false);
 
 #how to put bg images in viewpoer: "bg-[url('../src/consultant.png')]"
-
+#how to import images into react: https://www.youtube.com/watch?v=taMJct5oeoI
 JWT(JSON web token)
 
 
