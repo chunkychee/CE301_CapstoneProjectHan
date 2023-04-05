@@ -70,21 +70,18 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
 
 
-
-
-
-PERSONAL DIARY:
-Things learnt in this project:
-Front-End
--React
--tailwind CSS
--JS syntax
-
-Back-End
--JWT(authenticate,authorization 
--Express
--mysql
-
+PERSONAL DIARY:	
+Things learnt in this project:	
+Front-End	
+-React	
+-tailwind CSS	
+-JS syntax	
+	
+Back-End	
+-JWT(authenticate,authorization 	
+-Express	
+-mysql	
+	
 As A Whole:
--Leart JSX, tailwind framework, express, JWT from scratch
+-Learnt JSX, tailwind framework, express, JWT from scratch
 -Learnt how to debug and integrate codes after undestand them parts by parts.
