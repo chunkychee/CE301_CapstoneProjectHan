@@ -2,13 +2,18 @@ const express = require('express'); //dont convert to ES6
 const mysql = require('mysql');
 const app = express();
 const cors = require('cors');
+
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
+
+const {TokenCreation,validatetoken} = require('./JWTutility');
+const cookieParser = require('cookie-parser');
 
 
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 //create connection
 const db = mysql.createPool({
@@ -26,7 +31,6 @@ db.getConnection((err) => {
     console.log('Mysql connected.');
 });
 
-//correct one //insert data into clientsignup table
 app.post('/addinclientsignup', async (req, res) => {
     try {
       const query = "SELECT * FROM clientsignup WHERE clientemail = ?";
@@ -124,8 +128,14 @@ app.post('/login', (req, res) => {
               if (!isPasswordCorrect) {
                   res.status(401).send("INCORRECT PASSWORD");
               } else {
-                  res.send(result);
-                  console.log(result);
+                const user = result[0];//
+                const accessToken = TokenCreation(user.clientemail, user.clientname);
+                res.cookie("accessToken", accessToken, {maxAge: 60 * 60 * 24 * 30 * 1000, httpOnly: true,})
+                res.json({
+                  accessToken,
+                  clientemail: user.clientemail,
+                  clientname: user.clientname
+                })
               }
           }
       });
@@ -134,6 +144,10 @@ app.post('/login', (req, res) => {
       res.status(500).send({ error: error });
   }
 });
+
+app.get("/userProfile",validatetoken, (req, res) => { 
+  res.json("profile")
+})
   
 
 //CONSULTANT LOGIN

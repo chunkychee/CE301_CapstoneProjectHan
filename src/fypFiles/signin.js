@@ -1,7 +1,7 @@
 import axios from 'axios';
-import React from 'react'
+ import React from 'react'
 import { useState } from 'react'
-import {useNavigate} from 'react-router-dom';
+import { useNavigate} from 'react-router-dom';
 
 export const Signin = () => {
  
@@ -76,7 +76,7 @@ export const Signin = () => {
       // Consultant login
       try {
         await axios.post("http://localhost:3004/conlogin", ChangeFieldlogin);
-        navigate("/submitted");
+        navigate("/usersite");
       } catch (err) {
         // Handle errors
         SetChangeFieldLogin((prev) => ({
@@ -92,8 +92,15 @@ export const Signin = () => {
       // Client login
       try {
         await axios.post("http://localhost:3004/login", ChangeFieldlogin);
+        const response = await axios.post('/login', {
+          name: Name,
+          email: ChangeFieldlogin.clientemail
+        });
+        const { accessToken, email, password } = response.data;
+        localStorage.setItem('accessToken', accessToken);
         navigate("/usersite");
-      } catch (err) {
+
+       } catch (err) {
         // Handle errors
         SetChangeFieldLogin((prev) => ({
           ...prev,
@@ -139,7 +146,7 @@ export const Signin = () => {
                 {!ChangeFieldlogin.clickoncon &&(
                   <div className=''>
                     <p className='indent-12'>Email Address:</p>
-                    <input  type="text" name ="clientemail" onChange={fieldchange}/><br/>
+                    <input type="text" name ="clientemail" onChange={fieldchange}/><br/>
                     {ChangeFieldlogin.clientemail ===""?<span className='text-red-500'>{ChangeFieldlogin.errors.errclientemail}</span> :""}<br/>
 
                     <p className='mt-4 indent-14'>Password:</p>
