@@ -172,8 +172,6 @@ app.put('/changeBuyPolicies', async (req, res) => {
 });
 
 
-    
-
 
 app.post('/addinclientlogindetails', async (req, res) => {
   try {
