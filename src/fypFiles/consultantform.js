@@ -5,6 +5,7 @@ import { BiMale,BiFemale } from 'react-icons/bi';
 import moment from 'moment';
 import {AiFillEye,AiFillEyeInvisible} from 'react-icons/ai';
 
+
 export function SignUpConsultant(){
     //coninput is an obj that represents the current state of the component, and it has several (variables)properties: consultantname...
     //consetInput is a function that is used to update the STATE of the obj through the obj properties

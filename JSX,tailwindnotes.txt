@@ -1,7 +1,78 @@
-w-screen h-screen #fullscreen
-w-[80vh] #vh=viewportheight 80%
+CSS NOTES:
+-w-screen h-screen #fullscreen
+-w-[80vh] #vh=viewportheight 80%
+-"flex" makes the items go beneath another items.This happens if items are beside each other
 
-#USESTATE
+JSX NOTES:
+1. nodemon and react are on ES6
+2.The false inside the useState parentheses is the initial state value for the conUserErr state variable.
+  the initial value of false means that there are NO ERROR with user input when the component is first rendered.
+  const [conUserErr, setConUserErr] = useState(false);
+3. #how to put image into a varaible in react: const defaultImageURL = `${process.env.PUBLIC_URL}/defaultimage.png`;
+4. #how to put bg images in viewpoer: "bg-[url('../src/consultant.png')]"
+5. #how to import images into react: https://www.youtube.com/watch?v=taMJct5oeoI
+6. #JWT(JSON web token): https://www.youtube.com/watch?v=b9WlsQMGWMQ
+7. #e.target.name vs e.currentTarget.getAttribute('name') fixed the issue in two ways:
+  1. e.currentTarget refers to the element the event listener is attached to, which is the parent div. 
+   This way, we always get the correct element with the name attribute, regardless of which child element was clicked.
+  2. Using getAttribute('name') ensures that we access the name attribute of the element even if the event target is an SVG element 
+   (such as an icon from react-icons). Directly accessing the name property on an SVG element (e.g., e.target.name) would result in an undefined value.
+8. #{!logout.showBubble &&} == false and when it is false it will render! if not it will NOT render
+9. #The (${} and string concat + is the same) is necessary to evaluate and insert the value of i into the string. If you remove the $ symbol and use just i, the template literal will not interpret it as an expression, and the string will remain unchanged as "policyid{i}".
+   #The backtick () is used to define a TEMPLATE LITERAL in JavaScript. Template literals allow you to embed expressions within the string, using the ${expression}syntax.
+10.#const policyIds = policyNames.map(policy => policy.index) so basically the var store the data after the array filters it
+11.# =>Arrow functions a shorter way to write functions compared to the traditional function expressions.
+12.#db.quer
+12.5 #err.response is an object containing information about the HTTP response received from the server when an error occurs, and err.response.status is the specific HTTP status code of that response.
+      as an error might not have a response object, such as when a network error occurs. By checking for the existence of err.response and err.response.status, you can avoid potential issues caused by trying to access a property on an undefined object.
+13.#the .map() being used, it is an indication that the result will be a new array derived from the original array
+14 #const itemWithId1 = items.find((item) => item.id === 1); the item is a variable that is finding the item.id===1
+15 # {}=conditional statements which contain element. this arrow function renders an <li> element with specific styling only for the first item in the policyNames array. It skips rendering any elements for the remaining items in the array.
+
+     <ul>
+        {policyNames.map((policyNameid1, indexZero) => (
+          indexZero === 0 ? <li className="mb-3 outline outline-offset-2 outline-2 rounded-md py-1 transition ease-in-out delay-150 bg-slate-200 hover:-translate-y-1 hover:scale-110 hover:bg-slate-400 duration-300" key={indexZero}>{policyNameid1}</li> : null
+        ))}
+    </ul>
+16 #The main differences between PUT and POST are their purposes, idempotency, and the endpoints they typically target. POST is used to create new resources without client-defined IDs, while PUT is used to update existing resources or create new resources with client-defined IDs.
+17 #const fetchpolicy = async () => {
+      try {
+        const response = await axios.get('http://localhost:3004/policyname/policyid1');
+        // Assuming response.data is an array
+        const policydetails = response.data.map(result => {
+          return {
+            policyname: result.policyname,
+            policyimage: result.policyimage,
+            policydescription: result.policydescription,
+            pricemonthly: result.pricemonthly,
+          };
+        });
+  
+        // Do something with policydetails (e.g., update state)
+        
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+  When you make an HTTP request using Axios, it returns a response object that contains various properties, including:
+   DATA: The payload of the response, which is the actual information you're interested in (e.g., JSON data, plain text, or binary data).
+   STATUS: The HTTP status code of the response.
+   STATUSTEXT: The HTTP status text of the response.
+   HEADERS: The headers of the response.
+   CONFIG: The configuration used to make the request.
+   REQUEST: The actual request object.
+   
+18 #const matches = click.match(/(policyImage|policyDescription|policyPrice)(\d+)/);
+    if (matches) {
+      const [_, fieldType, policyIndex] = matches      
+        setPolicyReview((prev) => ({
+          ...prev,
+           [`${fieldType}${policyIndex}`]: input,
+        }));
+    } 
+  };
+
+#USESTATE:
 export const Submitted = () => {  
   const [submit,setsubmit] = useState('mario');
   const [age, setAge] = useState(25);
@@ -11,53 +82,40 @@ export const Submitted = () => {
       setAge('is 50 yrs old');
   }
 }
-        
-
 return(
   <div>
        <p>{submit} is {age} years old</p>
       <button onClick={handleClick}>Click me</button>
   </div>
 );
+const { setLoggedName, setLoggedEmail } = useUser();
+-Destructuring an object or an array in useState is just 
+a way of extracting values from the object or array to initialize the state variables.
+{ } means that it is for object destructuring 
+[ ] means it is for array destructuring
+null
+undefined
+boolean
+number
+string
+object (including arrays and functions)
 
-nodemon and react are on ES6
+#USECONTEXT:
+import {createContext,useContext,useState} from 'react';
+const UserContext = createContext(); //UserContext holds the createContext hook
+//children componenet = anything that is wrapped inside of <UserProvider><UserProvider/>
+export const UserProvider = ({ children }) => {
+  const [loggedName, setLoggedName] = useState(null);
+  const [loggedEmail, setLoggedEmail] = useState(null);
 
-The false inside the useState parentheses is the initial state value for the conUserErr state variable.
-the initial value of false means that there are NO ERROR with user input when the component is first rendered.
-const [conUserErr, setConUserErr] = useState(false);
+  return (
+    <UserContext.Provider value={{ loggedName, setLoggedName, loggedEmail, setLoggedEmail }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+//the return part is where UserContext(hook)hitch on a function that is embedded with values that are shared with the parent's children
 
-#how to put bg images in viewpoer: "bg-[url('../src/consultant.png')]"
-#how to import images into react: https://www.youtube.com/watch?v=taMJct5oeoI
-JWT(JSON web token): https://www.youtube.com/watch?v=b9WlsQMGWMQ
-
-#how to put image into a varaible in react: const defaultImageURL = `${process.env.PUBLIC_URL}/defaultimage.png`;
-
-
-
-//CLIENT LOGIN  
-  app.post('/login', (req, res) => { 
-    const query = "SELECT * FROM clientsignup WHERE clientusername = ?";
-    const username = req.body.clientusername;
-    const password = req.body.clientpassword;
-    try {
-        db.query(query, [username], async (err, result) => {
-            if (err) {
-                res.status(500).send({ err: err });
-            } else if (result.length == 0) {
-                res.status(401).send("INCORRECT USERNAME OR PASSWORD");
-            } else {
-                const isPasswordCorrect = await bcrypt.compare(password, result[0].clientpassword);
-                if (!isPasswordCorrect) {
-                    res.status(401).send("INCORRECT PASSWORD");
-                } else {
-                    res.send(result);
-                    console.log(result);
-                }
-            }
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).send({ error: error });
-    }
-});
-  
+export const useUser = () => {
+  return useContext(UserContext);
+};

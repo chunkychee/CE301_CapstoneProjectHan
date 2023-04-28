@@ -1,10 +1,12 @@
 import axios from 'axios';
- import React from 'react'
-import { useState } from 'react'
-import { useNavigate} from 'react-router-dom';
+import React from 'react'
+import {useState} from 'react'
+import {useNavigate} from 'react-router-dom';
+import { useUser } from './JWTuserDetails';
 
 export const Signin = () => {
- 
+  const { setLoggedName, setLoggedEmail } = useUser();
+
   const [ChangeFieldlogin, SetChangeFieldLogin] = useState({
         clientemail:"", 
         clientpassword:"",
@@ -19,6 +21,7 @@ export const Signin = () => {
           errLoginMsg:""
         }
     })
+    
   const UserFieldHandle=(e)=>{
         const click = e.target.name;
          if(click === "conbtn"){
@@ -91,20 +94,21 @@ export const Signin = () => {
     } else if (ChangeFieldlogin.clientemail && ChangeFieldlogin.clientpassword !=="") {
       // Client login
       try {
-        await axios.post("http://localhost:3004/login", ChangeFieldlogin);
-        const response = await axios.post('/login', {
-          name: Name,
-          email: ChangeFieldlogin.clientemail
-        });
-        const { accessToken, email, password } = response.data;
-        localStorage.setItem('accessToken', accessToken);
-        navigate("/usersite");
+        const response = await axios.post("http://localhost:3004/login", ChangeFieldlogin);
+        sessionStorage.setItem("accessToken", response.data.accessToken);
 
+        // You can also store other user information, like clientemail and clientname, if needed
+        sessionStorage.setItem("clientemail", response.data.clientemail);
+        sessionStorage.setItem("clientname", response.data.clientname);
+        setLoggedEmail(response.data.clientemail);
+        setLoggedName(response.data.clientname);
+        console.log(response);
+        navigate("/usersite");
        } catch (err) {
         // Handle errors
         SetChangeFieldLogin((prev) => ({
           ...prev,
-          errors: {
+          errors: { 
             ...prev.errors,
             errLoginMsg: err.response.data
           }
@@ -179,7 +183,7 @@ export const Signin = () => {
                 <div className='m-3'>
                   <p className='text-xs font-light text-center'>Looking for a fuss free way of getting insured?</p>
                 </div>
-                <div className=' '>
+                <div>
                     <button name="usersignup" type="button" onClick={directuserbtn} 
                       className="p-2 font-semibold text-3xl text-white bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-sky-500 hover:to-indigo-500">
                       Join us!
@@ -191,7 +195,7 @@ export const Signin = () => {
               <div className='m-3 '>
                   <p className='text-xs font-light'>Looking for a purpose in your career? Join our growing community of consultants!</p>
               </div> 
-              <div className=''>
+              <div>
                 <button name="consignup" type="button" onClick={directuserbtn} className="p-2 font-semibold text-3xl text-white bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-sky-500 hover:to-indigo-500">
                     Sign Up
                 </button>

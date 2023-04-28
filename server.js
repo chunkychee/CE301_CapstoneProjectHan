@@ -28,48 +28,215 @@ db.getConnection((err) => {
     if(err){
         throw err;
     }
-    console.log('Mysql connected.');
+    console.log('Mysql connected on port 3004');
 });
 
-app.post('/addinclientsignup', async (req, res) => {
-    try {
-      const query = "SELECT * FROM clientsignup WHERE clientemail = ?";
-      db.query(query, [req.body.clientemail], async (err, data) => {
-        if(err){
-           console.log(res.json(err))
-        } 
-        else if (data.length) {
-            // If email exists in the database, return an error message
-            return res.status(409).json({ message: "Email already exists" });
-        } else {
-          // If email does not exist in the database, hash the password and insert the client details
-          const salt = await bcrypt.genSalt();
-          const hashedpassword = await bcrypt.hash(req.body.clientpassword, salt);
-          const sql = "INSERT INTO clientsignup (clientname, clientpassword, clientgender, clientnumber, clientlifestyle, clientoccupation, clientemail, DOB) VALUES (?)";
-          const values = [
-            req.body.clientname,
-            hashedpassword,
-            req.body.clientgender,
-            req.body.clientnumber,
-            req.body.clientlifestyle,
-            req.body.clientoccupation,
-            req.body.clientemail,
-            req.body.DOB
-          ];
-  
-          db.query(sql, [values], (err, data) => {
-            if (err){
-                console.log(res.json(err))
-            }else{
-                res.status(201).json({ message: "Client signup successful" });
-            }
-          });
-        }
-      });
-    } catch (err) {
-      console.log(res.json(err));
+app.listen(3004, () => {
+  console.log(`Server is running and listening on port 3004`);
+});
+
+app.post('/loginadmin', async (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  const query = "SELECT * FROM admindb WHERE username = ? AND password = ?";
+  db.query(query, [username, password], async (err, data) => {
+    if (data.length) {
+      // User found, send success response
+      res.status(200).json({ message: 'Login successful' });
+    } else {
+      // User not found, send unauthorized response
+      res.status(401).json({ message: 'Incorrect username or password' });
     }
   });
+});
+
+app.post('/changefields', async (req, res) => {
+  const policyIdNames = {
+    policyid1: req.body.policyid1,
+    policyid2: req.body.policyid2,
+    policyid3: req.body.policyid3,
+    policyid4: req.body.policyid4,
+    policyid5: req.body.policyid5,
+    policyid6: req.body.policyid6,
+    policyid7: req.body.policyid7,
+    policyid8: req.body.policyid8,
+    policyid9: req.body.policyid9,
+    policyid10: req.body.policyid10,
+    policyid11: req.body.policyid11,
+    policyid12: req.body.policyid12
+    // Add more policy id names here if needed
+  };
+  const policyNames = [];
+  let query = 'UPDATE policiescreation SET policyname = CASE policyid ';
+  for (let i = 1; i <= 12; i++) {
+    const policyIdName = policyIdNames[`policyid${i}`];
+    if (policyIdName && policyIdName.trim()) {
+      policyNames.push({
+        index: i,
+        policyname: policyIdName
+      });
+      query += `WHEN '${i}' THEN '${policyIdName}' `;
+    }      
+  }
+  query += 'END WHERE policyid IN (';
+  const policyIds = policyNames.map(policy => policy.index).join(',');
+  query += policyIds;
+  query += ');';
+  console.log(query)
+  try {
+    db.query(query, async (error, result) => {
+        if (error) {
+            res.json(error);
+        } else {
+            res.json({ success: true });
+        }
+    });
+  } catch (error) {
+    res.json(error);
+  }
+});
+
+app.get('/getpolicyname/policynames', async (req, res) => {
+  try {
+    const query = 'SELECT policyname FROM policiescreation WHERE policyid >= 1 AND policyid <= 12';
+    db.query(query, (error, results) => {
+      if (error) {
+        throw error;
+      }
+      // Map over the results and extract the policyname values into an array
+      const policyNames = results.map(result => result.policyname);
+
+      // Return the array of policy names as the JSON response
+      res.status(200).json(policyNames);
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/policyname/policyid1', async (req, res) => {
+  try {
+    const query = "SELECT policyimage, policyid,policyname,policydescription,pricemonthly FROM policiescreation WHERE policyid = 1";
+    db.query(query, (error, results) => {
+      if (error) {
+        throw error;
+      }
+      // Map over the results and extract the policyname values into an array
+      const policy1details = results.map(result => ({
+        policyname: result.policyname,
+        policyimage: result.policyimage,
+        policydescription: result.policydescription,
+        pricemonthly: result.pricemonthly
+      }));
+      // Return the array of policy names as the JSON response
+      res.status(200).json(policy1details);
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/changeBuyPolicies', async (req, res) => {
+  try {
+    const numberOfPolicies = 12;
+    let query = 'UPDATE policiescreation SET policyimage = ?, imageformat = ?, policydescription = ?, pricemonthly = ? WHERE policyid = ?';
+    let promises = [];
+    for (let i = 1; i <= numberOfPolicies; i++) {
+      const policyImage = req.body[`policyImage${i}`]
+      const imageformat = PolicyReview[`imageformat${i}`]
+      const policyDescription = req.body[`policyDescription${i}`]
+      const policyPrice = req.body[`policyPrice${i}`]
+
+      if (policyImage || imageformat|| policyDescription || policyPrice) {
+        promises.push(new Promise((resolve, reject) => {
+          db.query(query, [policyImage,imageformat,policyDescription,policyPrice,i], (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          });
+        }));
+      }
+      console.log(promises)
+    }
+    Promise.all(promises).then(() => {
+      res.json({ success: true });
+    }).catch((error) => {
+      res.json(error);
+    });
+
+  } catch (error) {
+    res.json(error);
+  }
+});
+
+
+    
+
+
+app.post('/addinclientlogindetails', async (req, res) => {
+  try {
+    const query = "SELECT * FROM clientlogindetails WHERE clientemail = ?";
+    db.query(query, [req.body.clientemail], async (err, data) => {
+      if (err) {
+        res.json(err);
+      } else if (data.length) {
+        return res.status(409).json({ message: "Email already exists" });
+      } else {
+        const salt = await bcrypt.genSalt();
+        const hashedpassword = await bcrypt.hash(req.body.clientpassword, salt);
+        const sql = "INSERT INTO clientlogindetails (clientemail, clientpassword) VALUES (?)";
+        const values = [req.body.clientemail, hashedpassword];
+
+        db.query(sql, [values], (err) => {
+          if (err) {
+            res.json(err);
+          } else {
+            res.status(201).json({ message: "Client signup successful" });
+          }
+        });
+      }
+    });
+  } catch (err) {
+    res.json(err);
+  }
+});
+
+app.get('/api/data', async (req, res) => {
+  try {
+    const query = 'SELECT * FROM your_table';
+    const result = db.query(query);
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred while fetching data from the database.' });
+  }
+});
+
+app.post('/addinclientpersonaldetails', async (req, res) => {
+  try {
+    const sql = "INSERT INTO clientpersonaldetails (clientname, clientgender, clientnumber, clientlifestyle, clientoccupation, DOB, clientemail) VALUES (?)";
+    const values = [
+      req.body.clientname,
+      req.body.clientgender,
+      req.body.clientnumber,
+      req.body.clientlifestyle,
+      req.body.clientoccupation,
+      req.body.DOB,
+      req.body.clientemail
+    ];
+
+    db.query(sql, [values], (err) => {
+      if (err) {
+        res.json(err);
+      } else {
+        res.status(201).json({ message: "Client signup successful" });
+      }
+    });
+  } catch (err) {
+    res.json(err);
+  }
+});
 
   app.post('/addinconsultants', async (req, res) => {
     try {
@@ -113,7 +280,7 @@ app.post('/addinclientsignup', async (req, res) => {
   
 //CLIENT LOGIN  
 app.post('/login', (req, res) => { 
-  const query = "SELECT * FROM clientsignup WHERE clientemail = ?";
+  const query = "SELECT clientlogindetails.clientemail, clientlogindetails.clientpassword, clientpersonaldetails.clientname FROM clientlogindetails INNER JOIN clientpersonaldetails ON clientlogindetails.clientemail = clientpersonaldetails.clientemail;";
   const email = req.body.clientemail;
   const password = req.body.clientpassword;
   try {
@@ -145,11 +312,6 @@ app.post('/login', (req, res) => {
   }
 });
 
-app.get("/userProfile",validatetoken, (req, res) => { 
-  res.json("profile")
-})
-  
-
 //CONSULTANT LOGIN
 app.post('/conlogin', (req, res) => {
   const query = "SELECT * FROM consultantsignup WHERE consultantemail = ?";
@@ -177,35 +339,4 @@ app.post('/conlogin', (req, res) => {
       res.status(500).send({ error: error });
   }
 });
-
-app.get('/user/data', async (req, res) => {
-  // Fetch data from your database here, e.g., using a query
-  // For this example, we'll use a static array of objects as data
-  const data = [
-    { id: 1, name: 'Item 1' },
-    { id: 2, name: 'Item 2' },
-    { id: 3, name: 'Item 3' },
-  ];
-
-  res.json(data);
-});
-
-
-
-  
-  
-app.listen('3004', () => {
-    console.log('Server started on port 3004');
-})
-app.post('/addin',(req,res) => {
-    const sql = "INSERT INTO clientsignup (clientname,clientgender,clientnumber,clientaddress,clientlifestyle,clientoccupation,clientemail,DOB) VALUES (?)";
-    const values = 
-    ["Laura","F","91091209","Telok Ayer st 90 blk 90 S120390","Active", "Finance manager", "Laura9029$$@gmail.com","1980-09-10"];
-
-    db.query(sql,[values],(err,data) => {
-        if (err) return res.json(err);
-        return res.json("inserted in already");
-    });
-});
-
 

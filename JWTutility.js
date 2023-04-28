@@ -24,6 +24,6 @@ const validatetoken = (req,res,next) => {
     return res.status(400).json({err:err})
   }
 
-  }
+}
 
 module.exports = { TokenCreation , validatetoken};

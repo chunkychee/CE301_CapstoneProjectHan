@@ -121,11 +121,37 @@ export function SignUpDiv(){
   const submitbtn = async e =>{
     console.log(input)
     e.preventDefault();
-    if((input.clientgender && input.clientlifestyle && input.DOB !=="") && input.clientemail !==""){
-      try{
-        await axios.post("http://localhost:3004/addinclientsignup",input)
-        navigate("/submitted")
-      }catch(error){
+    if (
+      input.clientgender &&
+      input.clientlifestyle &&
+      input.DOB !== "" &&
+      input.clientemail !== ""
+    ) {
+      try {
+        const response1 = await axios.post("http://localhost:3004/addinclientlogindetails", {
+          clientemail: input.clientemail,
+          clientpassword: input.clientpassword
+        });
+    
+        if (response1.status === 201) {
+          const response2 = await axios.post("http://localhost:3004/addinclientpersonaldetails", {
+            clientname: input.clientname,
+            clientgender: input.clientgender,
+            clientnumber: input.clientnumber,
+            clientlifestyle: input.clientlifestyle,
+            clientoccupation: input.clientoccupation,
+            DOB: input.DOB,
+            clientemail: input.clientemail,
+          });
+          if (response2.status === 201) {
+            navigate("/submitted");
+          } else {
+            console.error("Error in addinclientpersonaldetails:", response2.data);
+          }
+        } else {
+          console.error("Error in addinclientlogindetails:", response1.data);
+        }
+      } catch (error) {
         setInput((prev) => ({
           ...prev,
           errors: {
@@ -134,7 +160,8 @@ export function SignUpDiv(){
           }
         }));
       }
-    }else{
+    }
+    else{
       setInput(prev => ({
         ...prev, errors: {
           ...prev.errors,
