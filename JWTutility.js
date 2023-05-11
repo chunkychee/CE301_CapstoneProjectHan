@@ -4,7 +4,7 @@ const TokenCreation = (clientemail,clientname) => {
   const payload = sign({
     email: clientemail,
     name: clientname
-  },"your_secret_key")
+   },"your_secret_key")
 
   return payload;
 }

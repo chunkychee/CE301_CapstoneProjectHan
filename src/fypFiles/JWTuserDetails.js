@@ -1,33 +1,33 @@
-import {createContext,useContext,useEffect,useState} from 'react';
+import { createContext, useContext, useState } from 'react';
 
-const UserContext = createContext(); //UserContext holds the createContext hook
+const UserContext = createContext();
 
-//children componenet = anything that is wrapped inside of <UserProvider><UserProvider/>
 function getEmailAndNameFromSessionStorage() {
-  const clientemail = sessionStorage.getItem("clientemail");
-  const clientname = sessionStorage.getItem("clientname");
-  return { clientemail, clientname };
+  const consultantemail = sessionStorage.getItem('consultantemail');
+  const consultantname = sessionStorage.getItem('consultantname');
+  const clientemail = sessionStorage.getItem('clientemail');
+  const clientname = sessionStorage.getItem('clientname');
+  return { clientemail ,clientname,consultantname,consultantemail};
+}
+
+function getTokenFromSessionStorage() {
+  return sessionStorage.getItem('accessToken');
 }
 
 export const UserProvider = ({ children }) => {
-  const [loggedName, setLoggedName] = useState(null);
-  const [loggedEmail, setLoggedEmail] = useState(null);
-  const [accessToken, setAccessToken] = useState(null);
-
-  useEffect(() => {
-    const { clientemail, clientname } = getEmailAndNameFromSessionStorage();
-    setLoggedEmail(clientemail);
-    setLoggedName(clientname);
-  }, []);
+  const [consultantName, setconsultantName] = useState(getEmailAndNameFromSessionStorage().consultantname);
+  const [consultantEmail, setconsultantEmail] = useState(getEmailAndNameFromSessionStorage().consultantemail);
+  const [clientName, setclientName] = useState(getEmailAndNameFromSessionStorage().clientname);
+  const [loggedEmail, setLoggedEmail] = useState(getEmailAndNameFromSessionStorage().clientemail);
+  const [accessToken, setAccessToken] = useState(getTokenFromSessionStorage());
 
   return (
-    <UserContext.Provider value={{loggedName,setLoggedName,loggedEmail,setLoggedEmail,accessToken,setAccessToken}}>
+    <UserContext.Provider value={{consultantName,setconsultantName,consultantEmail,setconsultantEmail,clientName,setclientName,loggedEmail, setLoggedEmail, accessToken, setAccessToken }}>
       {children}
     </UserContext.Provider>
   );
 };
-//the return part is where UserContext(hook)hitch on a function that is embedded with values that are shared with the parent's children
 
 export const useUser = () => {
-  return useContext(UserContext)
+  return useContext(UserContext);
 };

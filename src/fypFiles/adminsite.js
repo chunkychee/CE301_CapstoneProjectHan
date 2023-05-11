@@ -1,28 +1,29 @@
-import {React,useState,} from 'react';
+import {React,useState,useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
   
 export const Adminsite = () => {
-    const[textfield,setTextfields] = useState({
-        policyid1:"",
-        policyid2:"",
-        policyid3:"",
-        policyid4:"",
-        policyid5:"",
-        policyid6:"",
-        policyid7:"",
-        policyid8:"",
-        policyid9:"",
-        policyid10:"",
-        policyid11:"",
-        policyid12:""
-    })
-
+  const [textfield, setTextfields] = useState(() => {
+    const storedData = localStorage.getItem('TextFieldsDataKey');
+    return storedData ? JSON.parse(storedData) : {
+      policyid1: '',
+      policyid2: '',
+      policyid3: '',
+      policyid4: '',
+      policyid5: '',
+      policyid6: '',
+      policyid7: '',
+      policyid8: '',
+      policyid9: '',
+      policyid10: '',
+      policyid11: '',
+      policyid12: ''
+    };
+  });
     const navigate = useNavigate()
     const gobacktologin=()=>{
         navigate("/AdminLoginPage")
     }
-
     const implementChanges = (e) => {
         const click = e.target.name;
         const input = e.target.value;
@@ -30,7 +31,7 @@ export const Adminsite = () => {
           case 'policyid1':
             setTextfields((prev) => ({
               ...prev,
-              policyid1: input,
+              policyid1: input
             }));
             break;
           case 'policyid2':
@@ -104,102 +105,130 @@ export const Adminsite = () => {
         }
        };
  
+      useEffect(() => {
+        localStorage.setItem('TextFieldsDataKey',JSON.stringify(textfield));
+      }, [textfield]);
+ 
     const saveNimplement = async e =>{
         e.preventDefault();
          try{
-            await axios.post("http://localhost:3004/changefields",textfield)
-            setTextfields((prev) => ({
-              ...prev,
-              policyid1: "",
-              policyid2: "",
-              policyid3: "",
-              policyid4: "",
-              policyid5: "",
-              policyid6: "",
-              policyid7: "",
-              policyid8: "",
-              policyid9: "",
-              policyid10: "",
-              policyid11: "",
-              policyid12: ""
-            }));
-            }catch(err){
+             await axios.post("http://localhost:3004/changefields",textfield)
+          }catch(err){
             let error = err.response.status
             console.log(error)
           }
     }
-    const[PolicyReview,setPolicyReview] = useState({
+    const [PolicyReview, setPolicyReview] = useState(() => {
+      const storedDataPolicy = localStorage.getItem('PolicyTextFieldsDataKey');
+      return storedDataPolicy ? JSON.parse(storedDataPolicy) : {
           policyImage1:"",
           imageformat1:"",
           policyDescription1:"",
+          policyCoverage1:"",
           policyPrice1:"",
           policyImage2:"",
           imageformat2:"",
           policyDescription2:"",
+          policyCoverage2:"",
           policyPrice2:"",
           policyImage3:"",
           imageformat3:"",
           policyDescription3:"",
+          policyCoverage3:"",
           policyPrice3:"",
           policyImage4:"",
           imageformat4:"",
           policyDescription4:"",
+          policyCoverage4:"",
           policyPrice4:"",
           policyImage5:"",
           imageformat5:"",
           policyDescription5:"",
+          policyCoverage5:"",
           policyPrice5:"",
           policyImage6:"",
           imageformat6:"",
           policyDescription6:"",
+          policyCoverage6:"",
           policyPrice6:"",
           policyImage7:"",
           imageformat7:"",
           policyDescription7:"",
+          policyCoverage7:"",
           policyPrice7:"",
           policyImage8:"",
           imageformat8:"",
           policyDescription8:"",
+          policyCoverage8:"",
           policyPrice8:"",
           policyImage9:"",
           imageformat9:"",
           policyDescription9:"",
+          policyCoverage9:"",
           policyPrice9:"",
           policyImage10:"",
           imageformat10:"",
           policyDescription10:"",
+          policyCoverage10:"",
           policyPrice10:"",
           policyImage11:"",
           imageformat11:"",
           policyDescription11:"",
+          policyCoverage11:"",
           policyPrice11:"",
           policyImage12:"",
           imageformat12:"",
           policyDescription12:"",
+          policyCoverage12:"",
           policyPrice12:"",
-      })
+        };
+      });
 
+      useEffect(() => {
+        localStorage.setItem('PolicyTextFieldsDataKey',JSON.stringify(PolicyReview));
+      }, [PolicyReview]);
+ 
       const policySubmit = async (e) => {
         e.preventDefault();
          try{
-            await axios.put("http://localhost:3004/changeBuyPolicies",PolicyReview)
-           }catch(err){
-            console.log(err.response)
+          const formData = new FormData();
+          for (const key in PolicyReview) {
+            formData.append(key, PolicyReview[key]);
           }
+          for (let i = 0; i < 12; i++) {
+            const imageData = localStorage.getItem(`image${i}`);
+            formData.append(`image${i}`, imageData);
+          }
+           const response = await fetch('http://localhost:3004/changeBuyPolicies', {
+            method: 'PUT',
+            body: formData,
+          });
+          const result = await response.json(); 
+          console.log(result)
+          // Handle the response from the server
+        } catch (err) {
+          console.log(err.response);
+        }
       }
+
       const policyReviewSegment = (e) => {
         const click = e.target.name;
         const input = e.target.value;
-        const matches = click.match(/(policyImage|policyDescription|policyPrice)(\d+)/);
+         const matches = click.match(/(policyImage|policyDescription|policyCoverage|policyPrice)(\d+)/);
         if (matches) {
           if (/(policyImage(\d+))/.test(click)) {
             const [, fieldType, policyIndex] = matches;
             const imageData = e.target.files[0];
-            const imageformatMime = imageData.type;
+            const imageformatMime = imageData.type; 
+            const reader = new FileReader()
+            reader.readAsDataURL(imageData);
+            reader.onload = () => {
+              localStorage.setItem(`image${policyIndex}`, reader.result);
+            };
             setPolicyReview((prev) => ({
               ...prev,
-              [`${fieldType}${policyIndex}`]: input,
-              [`imageformat${policyIndex}`]: imageformatMime,
+              [`${fieldType}${policyIndex}`]: imageData, // Store the File object directly
+              [`imageformat${policyIndex}`]: imageformatMime
             }));
           } else {
             const [_, fieldType, policyIndex] = matches;
@@ -208,11 +237,10 @@ export const Adminsite = () => {
               [`${fieldType}${policyIndex}`]: input,
             }));
           }
-          console.log(PolicyReview);
+          console.log(PolicyReview)
         }
-      };
-      
-
+      }
+    
   return (
     <div>
       <nav className="bg-gray-800">
@@ -290,10 +318,13 @@ export const Adminsite = () => {
               <div className="flex-row space-y-4">
                 <div className="border-4 border-blue-500 p-3">
                   <form onSubmit={policySubmit}>
+                  {Array.from({ length: 1 }, (_, index) => (
+                  <div key={`policy${index + 1}`}>
                     <p className="text-center border-2 border-black">Critical-illness Policies fields:</p>
-                    <p className='text-center font-bold text-xl'>Policy 1:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage1" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription1" type="text" onChange={policyReviewSegment}></textarea>
+                    <p className='text-center font-bold text-xl'>Policy {index + 1}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage1" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription1" value={PolicyReview.policyDescription1} type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage1" value={PolicyReview.policyCoverage1} type="text" onChange={policyReviewSegment}></textarea>
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
@@ -301,170 +332,188 @@ export const Adminsite = () => {
                               className="pl-6 border-2 border-black"
                               name="policyPrice1"
                               type="number"
+                              value={PolicyReview.policyPrice1}
                               onChange={policyReviewSegment}
                             />
                     </div>  
-                    <div className="mt-3 border-2 border-[thickness] border-red-500"></div>
-                    
-                    <p className='text-center font-bold text-xl'>Policy 2:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage2" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription2" type="text" onChange={policyReviewSegment}></textarea>
+                    <div className="mt-3 border-2 border-[thickness] border-red-500"></div> 
+                    <p className='text-center font-bold text-xl'>Policy {index + 2}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage2" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription2" value={PolicyReview.policyDescription2} type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage2" value={PolicyReview.policyCoverage2} type="text" onChange={policyReviewSegment}></textarea>
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
                             <input
                               className="pl-6 border-2 border-black"
                               name="policyPrice2"
+                              value={PolicyReview.policyPrice2}
                               type="number"
                               onChange={policyReviewSegment}
                             />
                     </div>   
-    
                     <p className="mt-3 text-center border-2 border-black">Hospitalization Policies fields:</p>
-                    <p className='text-center font-bold text-xl'>Policy 3:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage3" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription3" type="text" onChange={policyReviewSegment}></textarea>
+                    <p className='text-center font-bold text-xl'>Policy {index + 3}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage3" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription3" value={PolicyReview.policyDescription3} type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage3" value={PolicyReview.policyCoverage3} type="text" onChange={policyReviewSegment}></textarea>
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
                             <input
                               className="pl-6 border-2 border-black"
                               name="policyPrice3"
+                              value={PolicyReview.policyPrice3}
                               type="number"
                               onChange={policyReviewSegment}
                             />
                     </div>                  
                     <div className="mt-3 border-2 border-[thickness] border-red-500"></div>
-                    
-                    <p className='text-center font-bold text-xl'>Policy 4:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage4" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription4" type="text" onChange={policyReviewSegment}></textarea>
+                    <p className='text-center font-bold text-xl'>Policy {index + 4}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage4" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full"  value={PolicyReview.policyDescription4} name="policyDescription4" type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage4" value={PolicyReview.policyCoverage4} type="text" onChange={policyReviewSegment}></textarea>
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
                             <input
                               className="pl-6 border-2 border-black"
                               name="policyPrice4"
+                              value={PolicyReview.policyPrice4}
                               type="number"
                               onChange={policyReviewSegment}
                             />
                     </div>   
-                    
-
                     <p className="mt-3 text-center border-2 border-black">Personal Accident Policies fields:</p>
-                    <p className='text-center font-bold text-xl'>Policy 5:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage5" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription5" type="text" onChange={policyReviewSegment}></textarea>
+                    <p className='text-center font-bold text-xl'>Policy {index + 5}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage5" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription5"  value={PolicyReview.policyDescription5} type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage5" value={PolicyReview.policyCoverage5} type="text" onChange={policyReviewSegment}></textarea>
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
                             <input
                               className="pl-6 border-2 border-black"
                               name="policyPrice5"
+                              value={PolicyReview.policyPrice5}
                               type="number"
                               onChange={policyReviewSegment}
                             />
                     </div>                  
                     <div className="mt-3 border-2 border-[thickness] border-red-500"></div>
                     
-                    <p className='text-center font-bold text-xl'>Policy 6:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage6" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription6" type="text" onChange={policyReviewSegment}></textarea>
+                    <p className='text-center font-bold text-xl'>Policy {index + 6}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage6" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription6" value={PolicyReview.policyDescription6} type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage6" value={PolicyReview.policyCoverage6} type="text" onChange={policyReviewSegment}></textarea>
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
                             <input
                               className="pl-6 border-2 border-black"
                               name="policyPrice6"
+                              value={PolicyReview.policy6}
                               type="number"
                               onChange={policyReviewSegment}
                             />
                     </div>    
                     
-
                     <p className="mt-3 text-center border-2 border-black">Permanant Disability/Disabilities Policies fields:</p>
-                    <p className='text-center font-bold text-xl'>Policy 7:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage7" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription7" type="text" onChange={policyReviewSegment}></textarea>
+                    <p className='text-center font-bold text-xl'>Policy {index + 7}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage7" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription7" value={PolicyReview.policyDescription7} type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage7" value={PolicyReview.policyCoverage7} type="text" onChange={policyReviewSegment}></textarea>
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
                             <input
                               className="pl-6 border-2 border-black"
                               name="policyPrice7"
+                              value={PolicyReview.policyPrice7}
                               type="number"
                               onChange={policyReviewSegment}
                             />
                     </div>                  
                     <div className="mt-3 border-2 border-[thickness] border-red-500"></div>
                     
-                    <p className='text-center font-bold text-xl'>Policy 8:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage8" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription8" type="text" onChange={policyReviewSegment}></textarea>
+                    <p className='text-center font-bold text-xl'>Policy {index + 8}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage8" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription8" value={PolicyReview.policyDescription8} type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage8" value={PolicyReview.policyCoverage8} type="text" onChange={policyReviewSegment}></textarea>
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
                             <input
                               className="pl-6 border-2 border-black"
                               name="policyPrice8"
+                              value={PolicyReview.policyPrice8}
                               type="number"
                               onChange={policyReviewSegment}
                             />
                     </div>    
                     <p className="mt-3 text-center border-2 border-black">Life Insurance Policies fields:</p>
-                    <p className='text-center font-bold text-xl'>Policy 9:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage9" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription9" type="text" onChange={policyReviewSegment}></textarea>
+                    <p className='text-center font-bold text-xl'>Policy {index + 9}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage9" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription9"  value={PolicyReview.policyDescription9} type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage9" value={PolicyReview.policyCoverage9} type="text" onChange={policyReviewSegment}></textarea>
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
                             <input
                               className="pl-6 border-2 border-black"
                               name="policyPrice9"
+                              value={PolicyReview.policyPrice9}
                               type="number"
                               onChange={policyReviewSegment}
                             />
                     </div>                  
                     <div className="mt-3 border-2 border-[thickness] border-red-500"></div>
                     
-                    <p className='text-center font-bold text-xl'>Policy 10:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage10" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription10" type="text" onChange={policyReviewSegment}></textarea>
+                    <p className='text-center font-bold text-xl'>Policy {index + 10}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage10" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription10"  value={PolicyReview.policyDescription10} type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage10" value={PolicyReview.policyCoverage10} type="text" onChange={policyReviewSegment}></textarea>
+
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
                             <input
                               className="pl-6 border-2 border-black"
                               name="policyPrice10"
+                              value={PolicyReview.policyPrice10}
                               type="number"
                               onChange={policyReviewSegment}
                             />
                     </div>    
                     <p className="mt-3 text-center border-2 border-black">Investment Policies fields:</p>
-                    <p className='text-center font-bold text-xl'>Policy 11:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage11" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription11" type="text" onChange={policyReviewSegment}></textarea>
+                    <p className='text-center font-bold text-xl'>Policy {index + 11}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage11" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription11"  value={PolicyReview.policyDescription11} type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage11" value={PolicyReview.policyCoverage11} type="text" onChange={policyReviewSegment}></textarea>
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
                             <input
                               className="pl-6 border-2 border-black"
                               name="policyPrice11"
+                              value={PolicyReview.policyPrice11}
                               type="number"
                               onChange={policyReviewSegment}
                             />
                     </div>                  
                     <div className="mt-3 border-2 border-[thickness] border-red-500"></div>
                     
-                    <p className='text-center font-bold text-xl'>Policy 12:</p>
-                    <p>policy image:</p><input className="border-2 border-black" name="policyImage12" type="file" accept=".png, .jpg, .jpeg" onChange={policyReviewSegment}></input>
-                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription12" type="text" onChange={policyReviewSegment}></textarea>
+                    <p className='text-center font-bold text-xl'>Policy {index + 12}:</p>
+                    <p>policy image:</p><input className="border-2 border-black" name="policyImage12" type="file" accept=".png, .jpg, .jpeg" data-max-file-size="0.416" onChange={policyReviewSegment}></input>
+                    <p>policy description:</p><textarea className="border-2 border-black h-20 w-full" name="policyDescription12" value={PolicyReview.policyDescription12} type="text" onChange={policyReviewSegment}></textarea>
+                    <p>policy coverage:</p><textarea className="border-2 border-black h-44 w-full" name="policyCoverage12" value={PolicyReview.policyCoverage12} type="text" onChange={policyReviewSegment}></textarea>
                     <p>policy monthly premium:</p>
                     <div className="relative">
                             <span className="absolute left-2 top-1/2 transform -translate-y-1/2">$</span>
                             <input
                               className="pl-6 border-2 border-black"
                               name="policyPrice12"
+                              value={PolicyReview.policyPrice12}
                               type="number"
                               onChange={policyReviewSegment}
                             />
@@ -472,6 +521,8 @@ export const Adminsite = () => {
                     <div className="text-right">
                       <button className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline-blue' type='submit'>save</button>
                     </div>
+                     </div>
+                    ))}
                   </form>
                 </div>
             </div>
@@ -479,11 +530,6 @@ export const Adminsite = () => {
         </div>
         </div>
       </main>
-      <footer className="bg-gray-200 text-center py-4">
-        <div className="max-w-7xl mx-auto px-4">
-          <p>&copy; 2023 Admin Page. All Rights Reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 }

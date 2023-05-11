@@ -107,33 +107,61 @@ export function SignUpConsultant(){
   
     //making API req to put user inpt into sql
     //Asynchronous functions  perform multiple tasks at the same time and don't block the execution of other code. This allows the program to continue running while the async function completes its task.
-    const consubmitbtn = async e =>{
+    const consubmitbtn = async e => {
       e.preventDefault();
-      if(coninput.consultantname && coninput.consultantemail && coninput.consultantnumber && coninput.consultantgender && coninput.DOB !== ""){
-        try{
-          await axios.post("http://localhost:3004/addinconsultants",coninput)
-          navigate("/consultantsubmitted")
-        }catch(err){
+      if (coninput.consultantname && coninput.consultantemail && coninput.consultantnumber && coninput.consultantgender && coninput.DOB !== "") {
+        try {
+          const response1 = await axios.post("http://localhost:3004/consultantlogindetails", {
+            consultantemail: coninput.consultantemail,
+            consultantpassword: coninput.consultantpassword
+          });
+    
+          if (response1.status === 201) {
+            try {
+              const response2 = await axios.post("http://localhost:3004/consultantpersonaldetails", {
+                consultantemail: coninput.consultantemail,
+                consultantname: coninput.consultantname,
+                consultantnumber: coninput.consultantnumber,
+                consultantgender: coninput.consultantgender,
+                DOB: coninput.DOB,
+                hearfromus: coninput.hearfromus
+              });
+              if(response1.status && response2.status ===201){
+                navigate("/consultantsubmitted");
+              }else{
+                console.log("error", response2.data)
+              }
+            } catch (err) {
+             console.log(err.response2.status)
+            }
+           
+          } else {
+            console.log("response2 error");
+          }
+        } catch (err) {
           consetInput(prev => ({
-            ...prev, errors: {
+            ...prev,
+            errors: {
               errEmailTaken: err.response.data.message
             }
           }));
         }
-      }else{
+      } else {
         consetInput(prev => ({
-          ...prev, errors: {
+          ...prev,
+          errors: {
             ...prev.errors,
             errconsultantname2: "Input field cant be empty",
             errconsultantnumber2: "Input field cant be empty",
-            errconsultantemail2: "Input field cant be empty",  
+            errconsultantemail2: "Input field cant be empty",
             errconsultantgender: "Select a gender",
             errconsultantpassword: "Password field cant be empty",
             errDOB: "Date Of Birth cant be empty",
           }
-        }));      
-      }    
-    }
+        }));
+      }
+    };
+    
     return (
       <div className="static">
           <div className = " font-sans font- text-3xl text-center">Join Us Today!
@@ -165,8 +193,8 @@ export function SignUpConsultant(){
                 </div>
               </div>
               <h3 className= "font-sans font-text-2xl w-96 mt-3">Gender:
-              <BiMale/><input type ="radio" name="consultantgender" value="M"checked={coninput.consultantgender === "M"} onChange={handleEvent}></input>
-              <BiFemale/><input type ="radio" name="consultantgender"value ="F"checked={coninput.consultantgender === "F"}onChange={handleEvent}></input><br/>
+              <BiMale/><input type ="radio" name="consultantgender" value="M" checked={coninput.consultantgender === "M"} onChange={handleEvent}></input>
+              <BiFemale/><input type ="radio" name="consultantgender" value ="F" checked={coninput.consultantgender === "F"}onChange={handleEvent}></input><br/>
               {coninput.consultantgender === ""?<span className='text-red-500'>{coninput.errors.errconsultantgender}</span> :""}
               </h3><br/><br/>
 

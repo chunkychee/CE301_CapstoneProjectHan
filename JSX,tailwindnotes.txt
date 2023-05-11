@@ -8,7 +8,7 @@ JSX NOTES:
 2.The false inside the useState parentheses is the initial state value for the conUserErr state variable.
   the initial value of false means that there are NO ERROR with user input when the component is first rendered.
   const [conUserErr, setConUserErr] = useState(false);
-3. #how to put image into a varaible in react: const defaultImageURL = `${process.env.PUBLIC_URL}/defaultimage.png`;
+3. #how to put image into a variable in react: const defaultImageURL = `${process.env.PUBLIC_URL}/defaultimage.png`;
 4. #how to put bg images in viewpoer: "bg-[url('../src/consultant.png')]"
 5. #how to import images into react: https://www.youtube.com/watch?v=taMJct5oeoI
 6. #JWT(JSON web token): https://www.youtube.com/watch?v=b9WlsQMGWMQ
@@ -22,19 +22,50 @@ JSX NOTES:
    #The backtick () is used to define a TEMPLATE LITERAL in JavaScript. Template literals allow you to embed expressions within the string, using the ${expression}syntax.
 10.#const policyIds = policyNames.map(policy => policy.index) so basically the var store the data after the array filters it
 11.# =>Arrow functions a shorter way to write functions compared to the traditional function expressions.
-12.#db.quer
-12.5 #err.response is an object containing information about the HTTP response received from the server when an error occurs, and err.response.status is the specific HTTP status code of that response.
-      as an error might not have a response object, such as when a network error occurs. By checking for the existence of err.response and err.response.status, you can avoid potential issues caused by trying to access a property on an undefined object.
+12.#  the function below typically takes 3 parameters: 
+  1) A string representing the SQL query you want to execute.
+  const sql = "SELECT * FROM users WHERE id = ?"
+  2) values: ptional array or object containing the values to be inserted in the SQL query, 
+      policyname: result.policyname,
+      imageformat: result.imageformat,
+      policyimage: result.policyimage,
+      policydescription: result.policydescription,
+      policycoverage: result.policycoverage
+  3)callbacks: err, results 
+db.query(sql, values, (err, results) => {
+  if (err) {
+    // Handle the error
+    console.error(err);
+  } else {
+    // Process the results
+    console.log(results);
+  }
+});
+
+**12.5 #error in the catch block from BE where:           
+res.status(500).json({ message/err/or what you want: "Policy has already been signed up this user" }); 
+FrontEnd will call to the front by holding it to (err)
+catch(err){
+  err.response.data.(message/or whatever you callyour msg holder)
+}
+
 13.#the .map() being used, it is an indication that the result will be a new array derived from the original array
 14 #const itemWithId1 = items.find((item) => item.id === 1); the item is a variable that is finding the item.id===1
 15 # {}=conditional statements which contain element. this arrow function renders an <li> element with specific styling only for the first item in the policyNames array. It skips rendering any elements for the remaining items in the array.
 
      <ul>
-        {policyNames.map((policyNameid1, indexZero) => (
+        {policyNames.map((*current element in the array*, *the index of the current element*) => (
           indexZero === 0 ? <li className="mb-3 outline outline-offset-2 outline-2 rounded-md py-1 transition ease-in-out delay-150 bg-slate-200 hover:-translate-y-1 hover:scale-110 hover:bg-slate-400 duration-300" key={indexZero}>{policyNameid1}</li> : null
         ))}
     </ul>
-16 #The main differences between PUT and POST are their purposes, idempotency, and the endpoints they typically target. POST is used to create new resources without client-defined IDs, while PUT is used to update existing resources or create new resources with client-defined IDs.
+16 # PUT 
+-use to UPDATE exsisting resource or creating new resource with a specific identifier.
+-200 STATUS code for successful entry
+-making the same PUT request multiple times will have the same effect as making it once
+    POST
+-creating new resource without a specific identifier.
+-201 STATUS code for successful entry
+
 17 #const fetchpolicy = async () => {
       try {
         const response = await axios.get('http://localhost:3004/policyname/policyid1');
@@ -61,6 +92,7 @@ JSX NOTES:
    HEADERS: The headers of the response.
    CONFIG: The configuration used to make the request.
    REQUEST: The actual request object.
+--frontend fetching data variables must be the same as the backend variables thus tally
    
 18 #const matches = click.match(/(policyImage|policyDescription|policyPrice)(\d+)/);
     if (matches) {
@@ -72,6 +104,73 @@ JSX NOTES:
     } 
   };
 
+19 #A BLOB is a binary data type that can store large amounts of binary data, 
+    like images, audio, or other multimedia objects. 
+    In databases, BLOBs are used to store such binary data.
+    On the other hand, base64 is a binary-to-text encoding scheme 
+    that represents binary data in an ASCII string format. It is often used to include binary data (like images) in text-based formats like JSON or XML.
+20 #req.body[imageformat${i}] gets its value from the request body sent from the frontend when making an API call. 
+the value comes from the properties of this useState obj, such as imageformat1, imageformat2, etc., will be accessible in the backend using req.body.
+ 
+(BINARY IMG UPLOAD) 
+21 #upload img to db as Binary data -> fetch the image from db and store the binary data -> convert to base64
+STEP1: store binary image into data
+--------------------------------------
+setPolicyNames({
+  policyimage: result.policyimage.DATA,
+});
+--------------------------------------
+STEP2:
+function createObjectURLFromBinary(binaryData, mimeType) {
+  const arrayBuffer = new Uint8Array(binaryData).buffer;
+  const blob = new Blob([arrayBuffer], { type: mimeType });
+  const objectURL = URL.createObjectURL(blob);
+  return objectURL;
+}
+--------------------------------------
+STEP3:
+<div>
+  {policyNames && (
+    <img
+      src={createObjectURLFromBinary(policyNames.policyimage, policyNames.imageformat)}
+      alt="Policy"
+    />
+  )}
+</div>
+--------------------------------------
+HOW TO DO LOCALSTORAGE IN BROWSER:
+22 #useEffect(() => {
+        localStorage.setItem('PolicyTextFieldsDataKey',JSON.stringify(PolicyReview));
+      }, [PolicyReview]);
+
+    const [textfield, setTextfields] = useState(() => {
+    const storedData = localStorage.getItem('TextFieldsDataKey');
+    return storedData ? JSON.parse(storedData) : {
+      policyid1: '',
+      policyid2: '',
+      policyid3: '',
+      policyid4: '',
+      policyid5: '',
+      policyid6: '',
+      policyid7: '',
+      policyid8: '',
+      policyid9: '',
+      policyid10: '',
+      policyid11: '',
+      policyid12: ''
+    };
+  });
+
+const saveNimplement = async e =>{
+        e.preventDefault();
+         try{
+             await axios.post("http://localhost:3004/changefields",textfield)
+          }catch(err){
+            let error = err.response.status
+            console.log(error)
+          }
+    }
+-----------------------------------
 #USESTATE:
 export const Submitted = () => {  
   const [submit,setsubmit] = useState('mario');
@@ -100,7 +199,52 @@ number
 string
 object (including arrays and functions)
 
+
+createContext and useContext are always use to:
+Create and access a shared state across multiple components in the component tree without having to pass the state down through props
+1. create a context using createContext:
+import { createContext } from 'react';
+const UserContext = createContext(); 
+
+2. Create a Provider to share the theme value across components:
+import { useState } from 'react';
+import { ThemeContext, getInitialTheme } from './ThemeContext';
+
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState(getInitialTheme());
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+point 1 and 2 codes are written tgt in a same file!!!
+
+3.use the provider component in your application to wrap the components that need access to the shared data in App.js.
+import { ThemeProvider } from './ThemeContext';
+
+function App() {
+  return (
+    <ThemeProvider>
+      <Header />
+      <Content />
+    </ThemeProvider>
+  );
+}
+
+4. For those compoenents that wants to use data, import the function from the 
+import { useContext } from 'react';
+import { ContentDataContext } from './ContentDataContext';
+  const { contentData, setContentData } = useContext(ContentDataContext);
+
+#CREATCONTEXT:
+A function that creates a new context object => 
+
+A context object contains a 1)Provider and a 2)Consumer component, which you can use to share state across components.
+
 #USECONTEXT:
+
 import {createContext,useContext,useState} from 'react';
 const UserContext = createContext(); //UserContext holds the createContext hook
 //children componenet = anything that is wrapped inside of <UserProvider><UserProvider/>

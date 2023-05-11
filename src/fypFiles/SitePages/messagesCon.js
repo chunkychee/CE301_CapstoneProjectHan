@@ -1,17 +1,13 @@
-import {React,useState,useEffect} from "react";
+import {React,useState,useEffect,useContext} from "react";
 import {AiOutlineInsurance,AiTwotoneHome} from "react-icons/ai";
-import {ImBooks} from "react-icons/im";
 import {GoFileSubmodule} from "react-icons/go";
 import {RiMessage2Fill} from "react-icons/ri"; 
 import {useUser} from "../JWTuserDetails";
 import {useNavigate} from "react-router-dom";
 import {BsThreeDots} from "react-icons/bs";
-//import {messengerapp} from "../firebase"
-//import {useAthState} from "react-firebase-hooks/auth"
-//import {useCollectionData} from "react-firebase-hooks/firestore"
-
-  export const Messages = () => {
-  const { loggedName, loggedEmail } = useUser();
+ 
+  export const MessagesCon = () => {
+  const { consultantEmail, consultantName } = useUser();
   const defaultImageURL = `${process.env.PUBLIC_URL}/defaultimage.png`;
   const [selectedImage, setSelectedImage] = useState(defaultImageURL);
   const navigate = useNavigate()
@@ -19,38 +15,7 @@ import {BsThreeDots} from "react-icons/bs";
     showBubble:true,
     logoutt:false
   })
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [greeting, setGreeting] = useState('');
-
-  //1. useEffect will render what you put in the first argument.
-  //2. useEffect will render what you put in the first argument,THEN will render again or not dependent on the dependencies in the array.
-  useEffect(() => {
-      const updateGreeting = () => {
-        setGreeting(HeaderGreeting());
-    };
-    updateGreeting(); // Set the initial greeting
-    const intervalId = setInterval(updateGreeting, 59000); // Update every 59000 milliseconds
-
-    return () => {
-      clearInterval(intervalId); // Clean up the interval when the component unmounts
-    };
-}, []);
-
-const HeaderGreeting = () => {
-  const currentHour = new Date().getHours();
-  if (currentHour >= 0 && currentHour < 12) {
-    return 'Good Morning';
-  } else if (currentHour >= 12 && currentHour < 18) {
-    return 'Good Afternoon';
-  } else {
-    return 'Good Evening';
-  }
-};
-
-  const PoliciesDropdown =()=>{
-    setDropdownVisible(prev => !prev);
-  }
-
+   
   const onImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = URL.createObjectURL(e.target.files[0]);
@@ -63,14 +28,10 @@ const HeaderGreeting = () => {
     const click = e.currentTarget.getAttribute('name')
     if(click === "Home"){
       navigate("/usersite");
-    }else if(click ==="policies"){
-      navigate("/policies");
     }else if(click ==="Services"){
       navigate("/services");
     }else if(click ==="Messages"){
-      navigate("/messages");
-    }else if(click ==="buypolicies"){
-      navigate("/Buypolicies");
+      navigate("/messagescon");
     }else if(click === "log-out"){
       sessionStorage.clear()
       navigate("/signin")
@@ -82,7 +43,6 @@ const HeaderGreeting = () => {
       }));
    } 
  }
- 
 
   return (
   <div className="fixed h-screen w-screen flex justify-center items-center">
@@ -95,24 +55,6 @@ const HeaderGreeting = () => {
           <div type="button" onClick={nav} name ="Home">
             <AiTwotoneHome className="font-sans text-4xl absolute -mx-9"/>
             <span className="font-sans text-3xl ml-5">Home</span>  
-          </div>
-
-          <div onClick={PoliciesDropdown} >
-            <ImBooks className="font-sans text-4xl absolute -mx-9"/>
-            <span className="font-sans text-3xl ml-5">Policies</span>
-            {dropdownVisible && (
-                  <div
-                    className={`${dropdownVisible ? 'opacity-100' : 'opacity-0'
-                  } transform transition-opacity duration-1 ease-in-out origin-top ${
-                    dropdownVisible ? 'scale-100' : 'scale-75'
-                  } transition-transform bg-gray-100 mt-2 p-4 rounded`}
-                  > 
-                     <ul>
-                      <li onClick={nav} name ="policies" className="mb-3 outline outline-offset-2 outline-2 rounded-md py-1 transition ease-in-out delay-150 bg-slate-200 hover:-translate-y-1 hover:scale-110 hover:bg-slate-400 duration-300">View Policies</li>
-                      <li onClick={nav} name ="buypolicies" className="outline outline-offset-2 outline-2 rounded-md py-1 transition ease-in-out delay-150 bg-slate-200 hover:-translate-y-1 hover:scale-110 hover:bg-slate-400 duration-300">Buy Policies</li>
-                    </ul>
-                  </div>
-                )}
           </div>
 
           <div onClick={nav} name ="Services">
@@ -148,19 +90,13 @@ const HeaderGreeting = () => {
               </div>
             )} 
             <BsThreeDots className="absolute ml-28 mt-1 cursor-pointer" name="tripledot" onClick={nav}/>  
-            <span className="font-bold font-sans">{loggedName}</span>
-            <span className="flex break-all font-sans text-sm">{loggedEmail}</span>
+            <span className="font-bold font-sans">{consultantName}</span>
+            <span className="flex break-all font-sans text-sm">{consultantEmail}</span>
           </div>
         </div>
       </div>
-      <div className="relative left-72 h-32 w-32">
-        <div className="flex w-48 flex-col space-y-2">
-          <h1 className="text-5xl font-light">{greeting}!</h1>
-          <span className="font-bold font-sans text-3xl">{loggedName}</span>
-        </div>
-        <div>
-          {/* Newsfeed div */}
-        </div>
+      <div>
+
       </div>
     </div>
   </div>  

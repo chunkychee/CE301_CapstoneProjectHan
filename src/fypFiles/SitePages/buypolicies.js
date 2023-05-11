@@ -11,8 +11,8 @@ import {BsThreeDots} from "react-icons/bs";
  
 
  export const Buypolicies = () => {
-  const { loggedName, loggedEmail } = useUser();
-  const defaultImageURL = `${process.env.PUBLIC_URL}/defaultimage.png`;
+  const { loggedEmail, setLoggedEmail } = useUser();
+  const { clientName, setclientName } = useUser();  const defaultImageURL = `${process.env.PUBLIC_URL}/defaultimage.png`;
   const [selectedImage, setSelectedImage] = useState(defaultImageURL);
   const navigate = useNavigate()
   const [logout,setLogout] = useState({
@@ -149,34 +149,54 @@ import {BsThreeDots} from "react-icons/bs";
       }));
    } 
  } 
- const policyBrief=(e)=>{
-  const click = e.currentTarget.getAttribute('name')
-  if(click === "policyid0"){
-    navigate("/policy1");
-  }else if(click === "policyid1"){
-    navigate("/policy2");
-  }else if(click === "policyid2"){
-    navigate("/policy3");
-  }else if(click === "policyid3"){
-    navigate("/policy4");
-  }else if(click === "policyid4"){
-    navigate("/policy5");
-  }else if(click === "policyid5"){
-    navigate("/policy6");
-  }else if(click === "policyid6"){
-    navigate("/policy7");
-  }else if(click === "policyid7"){
-    navigate("/policy8");
-  }else if(click === "policyid8"){
-    navigate("/policy9");
-  }else if(click === "policyid9"){
-    navigate("/policy10");
-  }else if(click === "policyid10"){
-    navigate("/policy11");
-  }else if(click === "policyid11"){
-    navigate("/policy12");
+ const policyBrief = (e) => {
+  const click = e.currentTarget.getAttribute('name');
+  let url;
+
+  switch (click) {
+    case "policyid0":
+      url = "/policy1";
+      break;
+    case "policyid1":
+      url = "/policy2";
+      break;
+    case "policyid2":
+      url = "/policy3";
+      break;
+    case "policyid3":
+      url = "/policy4";
+      break;
+    case "policyid4":
+      url = "/policy5";
+      break;
+    case "policyid5":
+      url = "/policy6";
+      break;
+    case "policyid6":
+      url = "/policy7";
+      break;
+    case "policyid7":
+      url = "/policy8";
+      break;
+    case "policyid8":
+      url = "/policy9";
+      break;
+    case "policyid9":
+      url = "/policy10";
+      break;
+    case "policyid10":
+      url = "/policy11";
+      break;
+    case "policyid11":
+      url = "/policy12";
+      break;
+    default:
+      url = "/";
   }
- }
+
+  window.open(url, '_blank');
+}
+
 
   return (
   <div className="fixed h-screen w-screen flex justify-center items-center">
@@ -241,7 +261,7 @@ import {BsThreeDots} from "react-icons/bs";
               </div>
             )} 
             <BsThreeDots className="absolute ml-28 mt-1 cursor-pointer" name="tripledot" onClick={nav}/>  
-            <span className="font-bold font-sans">{loggedName}</span>
+            <span className="font-bold font-sans">{clientName}</span>
             <span className="flex break-all font-sans text-sm">{loggedEmail}</span>
           </div>
         </div>

@@ -3,9 +3,12 @@ import React from 'react'
 import {useState} from 'react'
 import {useNavigate} from 'react-router-dom';
 import { useUser } from './JWTuserDetails';
-
+  
 export const Signin = () => {
-  const { setLoggedName, setLoggedEmail } = useUser();
+  const {consultantName, setconsultantName} = useUser()
+  const {consultantemail, setconsultantEmail} = useUser()
+  const {clientName, setclientName} = useUser()
+  const {loggedEmail, setLoggedEmail} = useUser()
 
   const [ChangeFieldlogin, SetChangeFieldLogin] = useState({
         clientemail:"", 
@@ -13,7 +16,7 @@ export const Signin = () => {
         consultantemail:"",
         consultantpassword:"",
         clickoncon:false,
-        errors:{
+        errors:{ 
           errclientemail:"",
           errclientpassword:"",
           errconemail:"",
@@ -78,15 +81,20 @@ export const Signin = () => {
     if (ChangeFieldlogin.consultantemail && ChangeFieldlogin.consultantpassword !== "") {
       // Consultant login
       try {
-        await axios.post("http://localhost:3004/conlogin", ChangeFieldlogin);
-        navigate("/usersite");
+         const response = await axios.post("http://localhost:3004/conlogin", {consultantemail: ChangeFieldlogin.consultantemail, consultantpassword: ChangeFieldlogin.consultantpassword});
+        sessionStorage.setItem("accessToken", response.data.accessToken);
+        sessionStorage.setItem("consultantemail", response.data.consultantemail);
+        sessionStorage.setItem("consultantname", response.data.consultantname);
+        setconsultantName(response.data.consultantname)
+        setconsultantEmail(response.data.consultantemail)
+         navigate("/consite");
       } catch (err) {
         // Handle errors
         SetChangeFieldLogin((prev) => ({
           ...prev,
           errors: {
             ...prev.errors,
-            errLoginMsg: err.response.data,
+            errLoginMsg:err.response ? err.response.data : 'An error occurred',
           },
         }));
         console.log(err)
@@ -96,13 +104,12 @@ export const Signin = () => {
       try {
         const response = await axios.post("http://localhost:3004/login", ChangeFieldlogin);
         sessionStorage.setItem("accessToken", response.data.accessToken);
-
         // You can also store other user information, like clientemail and clientname, if needed
         sessionStorage.setItem("clientemail", response.data.clientemail);
         sessionStorage.setItem("clientname", response.data.clientname);
-        setLoggedEmail(response.data.clientemail);
-        setLoggedName(response.data.clientname);
-        console.log(response);
+         setLoggedEmail(response.data.clientemail);
+         setclientName(response.data.clientname);
+         console.log(response);
         navigate("/usersite");
        } catch (err) {
         // Handle errors

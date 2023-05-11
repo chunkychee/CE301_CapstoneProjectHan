@@ -6,11 +6,9 @@ import {RiMessage2Fill} from "react-icons/ri";
 import {useUser} from "../JWTuserDetails";
 import {useNavigate} from "react-router-dom";
 import {BsThreeDots} from "react-icons/bs";
-
- export const UserSite = () => {
-  const { loggedEmail, setLoggedEmail } = useUser();
-  const { clientName, setclientName } = useUser();
-
+   
+  export const MessagesClient = () => {
+  const { loggedName, loggedEmail } = useUser();
   const defaultImageURL = `${process.env.PUBLIC_URL}/defaultimage.png`;
   const [selectedImage, setSelectedImage] = useState(defaultImageURL);
   const navigate = useNavigate()
@@ -21,8 +19,8 @@ import {BsThreeDots} from "react-icons/bs";
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [greeting, setGreeting] = useState('');
 
- //1. useEffect will render what you put in the first argument.
- //2. useEffect will render what you put in the first argument,THEN will render again or not dependent on the dependencies in the array.
+  //1. useEffect will render what you put in the first argument.
+  //2. useEffect will render what you put in the first argument,THEN will render again or not dependent on the dependencies in the array.
   useEffect(() => {
       const updateGreeting = () => {
         setGreeting(HeaderGreeting());
@@ -81,6 +79,8 @@ const HeaderGreeting = () => {
       }));
    } 
  }
+ 
+
   return (
   <div className="fixed h-screen w-screen flex justify-center items-center">
     <div className="static h-full w-5/6 bg-blue-200 flex">
@@ -93,6 +93,7 @@ const HeaderGreeting = () => {
             <AiTwotoneHome className="font-sans text-4xl absolute -mx-9"/>
             <span className="font-sans text-3xl ml-5">Home</span>  
           </div>
+
           <div onClick={PoliciesDropdown} >
             <ImBooks className="font-sans text-4xl absolute -mx-9"/>
             <span className="font-sans text-3xl ml-5">Policies</span>
@@ -110,6 +111,7 @@ const HeaderGreeting = () => {
                   </div>
                 )}
           </div>
+
           <div onClick={nav} name ="Services">
             <GoFileSubmodule className="font-sans text-4xl absolute -mx-10"/>
             <span  onClick={nav} className="font-sans text-3xl ml-5">Services</span>
@@ -143,7 +145,7 @@ const HeaderGreeting = () => {
               </div>
             )} 
             <BsThreeDots className="absolute ml-28 mt-1 cursor-pointer" name="tripledot" onClick={nav}/>  
-            <span className="font-bold font-sans">{clientName}</span>
+            <span className="font-bold font-sans">{loggedName}</span>
             <span className="flex break-all font-sans text-sm">{loggedEmail}</span>
           </div>
         </div>
@@ -151,11 +153,11 @@ const HeaderGreeting = () => {
       <div className="relative left-72 h-32 w-32">
         <div className="flex w-48 flex-col space-y-2">
           <h1 className="text-5xl font-light">{greeting}!</h1>
-          <span className="font-bold font-sans text-3xl">{clientName}</span>
+          <span className="font-bold font-sans text-3xl">{loggedName}</span>
         </div>
         <div>
           {/* Newsfeed div */}
-        </div> 
+        </div>
       </div>
     </div>
   </div>  

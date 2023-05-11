@@ -8,8 +8,9 @@ import {useNavigate} from "react-router-dom";
 import {BsThreeDots} from "react-icons/bs";
 
  export const Policies = () => {
-  const { loggedName, loggedEmail } = useUser();
-  const defaultImageURL = `${process.env.PUBLIC_URL}/defaultimage.png`;
+  const { loggedEmail, setLoggedEmail } = useUser();
+  const { clientName, setclientName } = useUser();
+    const defaultImageURL = `${process.env.PUBLIC_URL}/defaultimage.png`;
   const [selectedImage, setSelectedImage] = useState(defaultImageURL);
   const navigate = useNavigate()
   const [logout,setLogout] = useState({
@@ -118,19 +119,26 @@ import {BsThreeDots} from "react-icons/bs";
               </div>
             )} 
             <BsThreeDots className="absolute ml-28 mt-1 cursor-pointer" name="tripledot" onClick={nav}/>  
-            <span className="font-bold font-sans">{loggedName}</span>
+            <span className="font-bold font-sans">{clientName}</span>
             <span className="flex break-all font-sans text-sm">{loggedEmail}</span>
           </div>
         </div>
       </div>
-      <div className="ml-16">
-        {/* Parent div for newsfeed and title */}
-        <div>
-          {/* title div */}
+      <div className="relative flex left-72 w-72 flex-initial">
+        
+        <div className="bg-gray-100 rounded shadow-md p-6 mb-6 w-77">
+          <h2 className="text-2xl font-bold mb-4">Life Insurance</h2>
+          <p>Life insurance policies provide financial protection for your loved ones in the event of your death.</p>
         </div>
-        <div>
-          {/* Newsfeed div */}
+        <div className="bg-gray-100 rounded shadow-md p-6 mb-6 w-32">
+          <h2 className="text-2xl font-bold mb-4">Investment</h2>
+          <p>Investment policies allow you to save and grow your wealth for various life goals such as retirement, education, or buying a home.</p>
         </div>
+        <div className="bg-gray-100 rounded shadow-md p-6 mb-6 w-32">
+          <h2 className="text-2xl font-bold mb-4">Disability</h2>
+          <p>Disability policies provide financial support if you become disabled and are unable to work.</p>
+        </div>
+        
       </div>
     </div>
   </div>  

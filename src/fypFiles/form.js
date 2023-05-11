@@ -118,8 +118,8 @@ export function SignUpDiv(){
 
   //making API req to put user inpt into sql
   //Asynchronous functions  perform multiple tasks at the same time and don't block the execution of other code. This allows the program to continue running while the async function completes its task.
-  const submitbtn = async e =>{
-    console.log(input)
+  const submitbtn = async e => {
+    console.log(input);
     e.preventDefault();
     if (
       input.clientgender &&
@@ -132,21 +132,32 @@ export function SignUpDiv(){
           clientemail: input.clientemail,
           clientpassword: input.clientpassword
         });
-    
+  
         if (response1.status === 201) {
-          const response2 = await axios.post("http://localhost:3004/addinclientpersonaldetails", {
-            clientname: input.clientname,
-            clientgender: input.clientgender,
-            clientnumber: input.clientnumber,
-            clientlifestyle: input.clientlifestyle,
-            clientoccupation: input.clientoccupation,
-            DOB: input.DOB,
-            clientemail: input.clientemail,
-          });
-          if (response2.status === 201) {
-            navigate("/submitted");
-          } else {
-            console.error("Error in addinclientpersonaldetails:", response2.data);
+          try {
+            const [response2, response3] = await Promise.all([
+              axios.post("http://localhost:3004/addinclientpersonaldetails", {
+                clientname: input.clientname,
+                clientgender: input.clientgender,
+                clientnumber: input.clientnumber,
+                clientlifestyle: input.clientlifestyle,
+                clientoccupation: input.clientoccupation,
+                DOB: input.DOB,
+                clientemail: input.clientemail,
+              }),
+              axios.post("http://localhost:3004/addinclientboughtpolicies", {
+                clientemail: input.clientemail,
+              }),
+            ]);
+  
+            if (response2.status === 201 && response3.status === 201) {
+              navigate("/submitted");
+            } else {
+              console.error("Error in addinclientpersonaldetails:", response2.data);
+              console.error("Error in addinclientboughtpolicies:", response3.data);
+            }
+          } catch (error) {
+            console.error("Error in one or more requests:", error);
           }
         } else {
           console.error("Error in addinclientlogindetails:", response1.data);
@@ -160,23 +171,24 @@ export function SignUpDiv(){
           }
         }));
       }
-    }
-    else{
-      setInput(prev => ({
-        ...prev, errors: {
+    } else {
+      setInput((prev) => ({
+        ...prev,
+        errors: {
           ...prev.errors,
-          errClientName2:"Name field cant be empty",
-          errClientPassword:"Password field cant be empty",
-          errClientGender:"Select a gender", 
-          errClientNumber:"Mobile number field cant be empty",
-          errClientLifestyle:"Lifestyle field cant be empty", 
-          errClientOccupation:"Occupation field cant be empty",
-          errClientEmail:"Email field cant be empty",  
-          errDOB:"Date Of Birth cant be empty",
+          errClientName2: "Name field cant be empty",
+          errClientPassword: "Password field cant be empty",
+          errClientGender: "Select a gender",
+          errClientNumber: "Mobile number field cant be empty",
+          errClientLifestyle: "Lifestyle field cant be empty",
+          errClientOccupation: "Occupation field cant be empty",
+          errClientEmail: "Email field cant be empty",
+          errDOB: "Date Of Birth cant be empty",
         }
       }));
     }
-  }
+  };
+  
 
   return (
       <div className = "h-screen bg-gradient-to-r from-purple-500 to-pink-500 grid place-content-center">
