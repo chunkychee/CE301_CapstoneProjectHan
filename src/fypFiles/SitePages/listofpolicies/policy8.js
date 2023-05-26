@@ -3,15 +3,15 @@ import axios from 'axios'
 
 export function Policy8(){
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [ policy8Data, setpolicy8Data] = useState({
+  const [policy8Data, setpolicy8Data] = useState({
     sessionEmail:"",
     NRIC:"",
     policyid:8,
     policyActive:"Active",
     errmsgMax9:"",
     errmsgCantEmpty:"",
-    userAlrdSignUp:""
-   });
+    userAlrdSignUp:"",
+    });
   const [policyNames, setPolicyNames] = useState()// policy details sent from server and stored in OBJ
   const [showNRICBox, setShowNRICBox] = useState(false);
    useEffect(() => {
@@ -30,7 +30,7 @@ export function Policy8(){
             pricemonthly: result.pricemonthly
           });
          }
-      } catch (error) {
+       } catch (error) {
         console.error('Error fetching data:', error);
       }
      };
@@ -44,41 +44,59 @@ export function Policy8(){
     return objectURL;
   }
 
-  const NRICsubmit = async (e)=>{
-    e.preventDefault()
-   if( policy8Data.NRIC !== null &&  policy8Data.NRIC !==""){
-     try{
+  const paymentPage = (e) => {
+    e.preventDefault();
+    if (policy8Data.NRIC !== null && policy8Data.NRIC !== "") {
         const retrieveClientEmail = sessionStorage.getItem("clientemail");
         const updatedPolicyData = {
           ...policy8Data,
           sessionEmail: retrieveClientEmail
         };
-        const responseNRIC = await axios.post('http://localhost:3004/NRICpolicies',
-        {sessionEmail: updatedPolicyData.sessionEmail,
-        NRIC: updatedPolicyData.NRIC,
-        policyid: updatedPolicyData.policyid,
-        policyActive: updatedPolicyData.policyActive})
-        if (responseNRIC.status === 201) {
-          setSubmitSuccess(true);
-          setpolicy8Data((prev) => ({
-            ...prev,
-             errmsgMax9:"",
-             errmsgCantEmpty: ""
-          })); 
-        }
-      }catch(err){
-        setpolicy8Data((prev) => ({
-          ...prev,
-          userAlrdSignUp: err.response.data.message
-        }));  
-      }
-    }else{
+         fetch('http://localhost:3004/checkout-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            policyDetails: {
+              sessionEmail: updatedPolicyData.sessionEmail,
+              NRIC: updatedPolicyData.NRIC,
+              policyid: updatedPolicyData.policyid,
+              policyActive: updatedPolicyData.policyActive
+            },
+            policy1details: [{ id: policy8Data.policyid, name: policyNames.policyname, price: policyNames.pricemonthly, quantity: 1}]
+          }),
+        })
+        .then(async (res) => {
+          if (res.ok) return res.json();
+          const json = await res.json();
+          return Promise.reject(json);
+        })
+        .then(({ url }) => {
+          window.location = url;
+        })
+        .catch((e) => {
+          console.error(e);
+          if (e.incorrectNRIC) {
+            setpolicy8Data((prev) => ({
+              ...prev,
+              userAlrdSignUp: e.incorrectNRIC
+            }));
+          } else {
+            setpolicy8Data((prev) => ({
+              ...prev,
+              userAlrdSignUp: e.userAlrdSignUp
+            }));
+          }
+        });        
+    } else {
       setpolicy8Data((prev) => ({
         ...prev,
-        errmsgCantEmpty: "Input your NRIC before submitting",
-      }));    
-    } 
-   }
+        userAlrdSignUp: "Input your NRIC before submitting",
+       }));
+    }
+  }; 
+
   const NRICinput = (e)=>{
      const value = e.target.value
          setpolicy8Data((prev) => ({
@@ -121,16 +139,24 @@ export function Policy8(){
         </div>
         {!showNRICBox && (
         <div className="mt-8">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-600" onClick={() => setShowNRICBox(true)}>Sign up for this policy</button>
+          <button className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-600" onClick={() => setShowNRICBox(true)}>Purchase policy</button>
         </div>
         )}
                {showNRICBox && (
                 <div className="relative bg-white p-4 rounded shadow-md">
                   <button
                     className="absolute top-1 right-1 text-gray-500 hover:text-gray-800"
-                    onClick={() => setShowNRICBox(false)}
+                    onClick={() => {
+                      setShowNRICBox(false);
+                      // additional useState here
+                      setpolicy8Data((prev) => ({
+                        ...prev,
+                        userAlrdSignUp: "",
+                        errmsgMax9:"",
+                        errmsgCantEmpty:""
+                      }));
+                    }}
                   >
-                  
                     <span className="font-bold text-3xl mr-4">x</span>
                   </button>
                   <div className="mb-4">
@@ -138,30 +164,25 @@ export function Policy8(){
                     <label htmlFor="nric" className="block mb-1 font-bold">
                       NRIC:
                     </label>                    
-                    { policy8Data.errmsgMax9 ? <span className='text-sm underline text-black'> { policy8Data.errmsgMax9}</span> : ""}<br/>
-                    <form onSubmit={NRICsubmit}>
-
-                    <input
+                    {policy8Data.errmsgMax9 ? <span className='text-sm underline text-black'> {policy8Data.errmsgMax9}</span> : ""}<br/>
+                     <input
                       type="text"
                       name="NRIC"
                       onChange={NRICinput}
                       className="w-full p-2 border border-gray-300 rounded"
                     />      
                     <div className="mb-1"> 
-                    { policy8Data.errmsgCantEmpty ? <span className='text-red-500'> { policy8Data.errmsgCantEmpty}</span> : ""}<br/>                     
-                    { policy8Data.userAlrdSignUp ? <span className='text-red-500'> { policy8Data.userAlrdSignUp}</span> : ""}<br/>                     
-
+                    {policy8Data.errmsgCantEmpty ? <span className='text-red-500'> {policy8Data.errmsgCantEmpty}</span> : ""}<br/>                     
+                    {policy8Data.userAlrdSignUp ? <span className='text-red-500'> {policy8Data.userAlrdSignUp}</span> : ""}<br/>                     
                     </div>
                     <div>
                       {submitSuccess ?  
                         <div>
                           <span className="text-2xl font-bold text-green-500 text-center block">Submission successful!</span>
-                        </div>: <button className="mt-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-20">Enter</button>
+                        </div>: <button className="mt-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-20" onClick={paymentPage}>Enter</button>
                       }
                     </div>
-                    </form>
-
-                  </div>
+                   </div>
                 </div>
               )}
       </div>

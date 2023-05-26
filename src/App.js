@@ -9,7 +9,6 @@ import {Signin} from './fypFiles/signin';
 import {UserSite} from './fypFiles/SitePages/usersite';
 import {ConSite} from './fypFiles/consultantsite';
 import {Policies} from './fypFiles/SitePages/policies';
-import {Services} from './fypFiles/SitePages/services';
 import {MessagesClient} from './fypFiles/SitePages/messagesClient';
 import {MessagesCon} from './fypFiles/SitePages/messagesCon';
 import {Buypolicies} from './fypFiles/SitePages/buypolicies';
@@ -26,8 +25,10 @@ import {Policy10} from './fypFiles/SitePages/listofpolicies/policy10';
 import {Policy11} from './fypFiles/SitePages/listofpolicies/policy11';
 import {Policy12} from './fypFiles/SitePages/listofpolicies/policy12';
 import {AdminLoginPage} from './fypFiles/adminlogin';
-import {Adminsite}from './fypFiles/adminsite';
-
+import {Adminsite}from './fypFiles/adminsite'; 
+import {PaymentErr} from './fypFiles/SitePages/paymentErrpage';
+import {PaymentSuccess} from './fypFiles/SitePages/paymentSuccess';
+ 
 function App(){
   return (
     <div> 
@@ -55,11 +56,12 @@ function App(){
             <Route path ="/policy10" element={<Policy10/>}/>
             <Route path ="/policy11" element={<Policy11/>}/>
             <Route path ="/policy12" element={<Policy12/>}/>
-            <Route path ="/services" element={<Services/>}/>
             <Route path ="/messagescon" element={<MessagesCon/>}/>
             <Route path ="/messagesclient" element={<MessagesClient/>}/>
             <Route path ="/Adminsite" element={<Adminsite/>}/>
             <Route path ="/AdminLoginPage" element={<AdminLoginPage/>}/>
+            <Route path ="/paymentErr" element={<PaymentErr/>}/>
+            <Route path ="/paymentSuccess" element={<PaymentSuccess/>}/>
         </Routes>
        </BrowserRouter> 
       </UserProvider>

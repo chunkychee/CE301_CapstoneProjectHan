@@ -6,7 +6,6 @@ const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const {TokenCreation,validatetoken} = require('./JWTutility');
 const cookieParser = require('cookie-parser');
-const{default:axios}=require("axios")
 
 const multer = require('multer');
 const storage = multer.memoryStorage();
@@ -14,11 +13,75 @@ const upload = multer({ storage: storage });
 const stripe = require('stripe')('sk_test_51N6ORnEisZGzLMpF3GPwu8Jb9hfgdciFRfhq3xMpjD5qfxYqpYUrRNokPy7HNdObu9lnDaV4ZexOXkW54utdhn0h00pkRiOszm')
 
 app.use(cors());
+app.use(cookieParser());
+ 
+//--------------------WEBHOOK SECTION/--------------------/////////////////////////////////
+
+let endpointSecret = "whsec_8iO25pWa3GH2hntJCBKAZg1C9uEzBeJy"
+// Assuming you have a route to handle successful payments
+app.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, response) => {
+  const sig = request.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+  }
+  catch (err) {
+    response.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
+  switch (event.type) {
+    case 'checkout.session.completed':
+      const checkoutSessionCompleted = event.data.object; 
+      console.log('Checkout session was completed!');
+      const userEmail = checkoutSessionCompleted.metadata.userEmail
+      const policyId = checkoutSessionCompleted.metadata.policyId
+      const policyActive = checkoutSessionCompleted.metadata.policyActive
+      const NRIC = checkoutSessionCompleted.metadata.NRIC
+      console.log(userEmail, policyId, policyActive, NRIC)
+      let sqlCheckNRIC = 'SELECT NRICnumber FROM clientboughtpolicies WHERE clientemail = ?';
+      db.query(sqlCheckNRIC, [userEmail], (err, result) => {
+          if (err) {
+              response.status(500).json({ message: "Internal server error", error: err });
+          } else {
+              if (result[0].NRICnumber == null) {
+                  let sqlUpdatePolicy = `UPDATE clientboughtpolicies SET policyid${policyId} = ?, NRICnumber = ? WHERE clientemail = ?`;
+                  db.query(sqlUpdatePolicy, [policyActive, NRIC, userEmail], (err, result) => {
+                      if (err) {
+                          response.status(500).json({ message: "Internal server error", error: err });
+                      } else {
+                        //let queryToClaim = `UPDATE clientboughtpolicies SET policyid${policyId} = ?, NRICnumber = ? WHERE clientemail = ?`;
+                         
+                      }
+                  });
+              } else {
+                  let sqlUpdatePolicy = `UPDATE clientboughtpolicies SET policyid${policyId} = ? WHERE clientemail = ?`;
+                  db.query(sqlUpdatePolicy, [policyActive, userEmail], (err, result) => {
+                      if (err) {
+                          response.status(500).json({ message: "Internal server error", error: err });
+                      } else {
+                        db.query(sqlUpdatePolicy, [policyActive, NRIC, userEmail], (err, result) => {
+                          if (err) {
+                              response.status(500).json({ message: "Internal server error", error: err });
+                          } else {
+     
+                          }
+                      }); 
+                    }
+                  });
+              }
+          }
+        })
+       break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+   }
+ });
+//--------------------WEBHOOK SECTION/--------------------/////////////////////////////////
+
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cookieParser());
 
-//create connection
+//create connection 
 const db = mysql.createPool({
     host:'localhost',
     user:'root',
@@ -351,67 +414,7 @@ app.post('/addinclientlogindetails', async (req, res) => {
     res.json(err);
   }
 });
-app.post('/NRICpolicies', async (req, res) => {
-  try {
-    const NRICdetails = {
-      sessionEmail: req.body.sessionEmail,
-      NRIC: req.body.NRIC,
-      policyid: req.body.policyid,
-      policyActive:req.body.policyActive
-    };       
-    let policyColumn = `policyid${NRICdetails.policyid}`;
-    const sqlSearchEmail = "SELECT * FROM clientboughtpolicies WHERE clientemail = ?";
-    db.query(sqlSearchEmail, [NRICdetails.sessionEmail], async (err, result) => {
-      if (err) {
-        res.status(500).json({ message: "Internal server error", error: err });
-      } else if (result.length === 0) {
-        // If user is not present, return an error
-        res.status(404).json({ message: "Client email not found" });
-      } else {
-        // If user is present, check if the policy is already applied
-        let sqlSearchPolicy = `SELECT * FROM clientboughtpolicies WHERE clientemail = ? AND ${policyColumn} IS NOT NULL`;
-        db.query(sqlSearchPolicy, [NRICdetails.sessionEmail], (err, result) => {
-          if (err) {
-            res.status(500).json({ message: "Internal server error", error: err });
-          } else if (result.length !== 0) {
-            res.status(500).json({ message: "Policy has already been signed up this user" }); 
-          } else { 
-            // Check if NRIC exists for the user
-            const sqlCheckNRIC = "SELECT NRICnumber FROM clientboughtpolicies WHERE clientemail = ? AND NRICnumber IS NOT NULL";
-            db.query(sqlCheckNRIC, [NRICdetails.sessionEmail], (err, result) => {
-              if (err) {
-                res.status(500).json({ message: "Internal server error", error: err });
-              } else if (result.length === 0) {
-                // If NRIC doesn't exist, insert NRIC and set policy to active
-                let sqlUpdatePolicy = `UPDATE clientboughtpolicies SET ${policyColumn} = ?, NRICnumber = ? WHERE clientemail = ?`;
-                db.query(sqlUpdatePolicy, [NRICdetails.policyActive, NRICdetails.NRIC, NRICdetails.sessionEmail], (err, result) => {
-                  if (err) {
-                    res.status(500).json({ message: "Internal server error", error: err });
-                  } else {
-                    res.status({ message: "NRIC inserted and policy signed up successfully" });
-                  }
-                });
-              } else {
-                // If NRIC exists, just set the policy to active
-                let sqlUpdatePolicy = `UPDATE clientboughtpolicies SET ${policyColumn} = ? WHERE clientemail = ?`;
-                db.query(sqlUpdatePolicy, [NRICdetails.policyActive, NRICdetails.sessionEmail], (err, result) => {
-                  if (err) {
-                    res.status(500).json({ message: "Internal server error", error: err });
-                  } else {
-                    res.status(201).json({ message: "Policy signed up successfully" });
-                  }
-                });
-              }
-            });
-          }
-        });
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
-  }
-});
-    
+
 app.post('/addinclientboughtpolicies', async (req, res) => {
   try {
     const sql = "INSERT INTO clientboughtpolicies(clientemail) VALUES (?)";
@@ -455,28 +458,205 @@ app.post('/addinclientpersonaldetails', async (req, res) => {
   }
 });
 
-app.post('/checkout-session', async (req, res) => {
-  const session = await stripe.checkout.sessions.create({
-     Payment_method_types:[card],
-     mode: 'payment',
-     line_items: req.body.items.map(item=>{
-       const storeItem = storeItem.get(item.id)
-       return{
-        price_data:{
-          currency:'sgd',
-          product_data:{
-            name:storeItem.name
-          },
-          unit_amount: storeItem.priceInCents
-        },
-        quantity: item.quantity
-
-       }
-     }),
-     success_url: 'http://localhost:3004/submitted',
-     cancel_url: 'http://localhost:3004/policy1',
-  });
-
- });
-
  
+app.post('/checkout-session', async (req, res) => {
+  try {
+    const values = [req.body.policy1details[0].id, req.body.policy1details[0].name, req.body.policy1details[0].price];
+    console.log("policy1details values",values)
+    const sql = 'SELECT * FROM policiescreation WHERE policyid = ? AND policyname = ? AND pricemonthly = ?';
+    
+    db.query(sql, values, async (err, result) => {
+      if(err){
+        console.log("Server issue:", err.message);  
+        res.status(500).json({ error: err.message });
+      }else if(result.length === 0){
+        console.log("Policy not found");
+        return res.status(404).json({ message1: "Policy not found" }); 
+      }else{        
+        const NRICdetails = {
+          sessionEmail: req.body.policyDetails.sessionEmail,
+          NRIC: req.body.policyDetails.NRIC,
+          policyid: req.body.policyDetails.policyid,
+          policyActive: req.body.policyDetails.policyActive
+        }
+        
+        const policyColumn = `policyid${NRICdetails.policyid}`;
+        const sqlCheckNull = `SELECT * FROM clientboughtpolicies WHERE clientemail = ? AND NRICnumber IS NULL`
+
+        db.query(sqlCheckNull, [NRICdetails.sessionEmail], async (err, result) => {
+          if(err){
+            console.log('Error querying for policy:', err);
+          }else if(result.length === 0){
+            const sqlCheckNRIC = `SELECT NRICnumber FROM clientboughtpolicies WHERE clientemail = ? AND ${policyColumn} IS NOT NULL`;
+            console.log(result[0])
+            db.query(sqlCheckNRIC, [NRICdetails.sessionEmail, NRICdetails.NRIC], async (err, result) => {
+              if(err){
+                console.log('Error querying for policy:', err);
+              }else if(result.length === 1){
+                return res.status(404).json({ userAlrdSignUp: "You are only able to purchase this policy only once." });
+              }else{
+                const sqlcheckLast = `SELECT NRICnumber FROM clientboughtpolicies WHERE clientemail = ?`
+                db.query(sqlcheckLast, [NRICdetails.sessionEmail], async (err, result) => {
+                  if(err){
+                    console.log('Error querying for policy:', err);
+                  }else if(NRICdetails.NRIC !== result[0].NRICnumber){
+                    res.status(400).json({ incorrectNRIC: "Please input your designated NRIC for this account to purchase this policy."});
+                  }else{
+                    const session = await createStripeSession(req);
+                    res.json({ url: session.url });
+                  }
+                })
+              }
+            }); 
+          }else{
+            const session = await createStripeSession(req);
+            res.json({ url: session.url });
+          }
+        });
+      }
+    });
+  }catch(e) {
+    console.log('Error in /checkout-session:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
+async function createStripeSession(req) {
+  return await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    mode: 'payment',
+    success_url: 'http://localhost:3000/paymentSuccess', 
+    cancel_url: 'http://localhost:3000/paymentErr',
+    line_items: [{
+      price_data: {
+        currency: 'sgd',
+        product_data: {
+          name:req.body.policy1details[0].name,
+        },
+        unit_amount: req.body.policy1details[0].price * 100,
+      },
+      adjustable_quantity: {
+        enabled: false
+      },
+      quantity: 1,
+    }],
+    metadata: {
+      userEmail: req.body.policyDetails.sessionEmail,
+      policyId: req.body.policyDetails.policyid,
+      policyActive: req.body.policyDetails.policyActive,
+      NRIC: req.body.policyDetails.NRIC
+     }, 
+  });
+}
+app.post('/showPurchasePolicies', async (req, res) => {
+  try {
+    const query = `SELECT ${Array.from({ length: 10 }, (_, i) => `policyid${i + 1}`).join(', ')} FROM clientboughtpolicies WHERE clientemail = ?`;
+    const sessionEmail = req.body.payload.sessionEmail
+     db.query(query,sessionEmail, (err, results) => {
+      if (err) {
+        return res.status(500).json({errMessage: "Database query error"});
+      } else {
+        // Initialize the activePoliciesObject
+        let activePoliciesObject = {}
+
+        // If there's at least one result, process it
+        if(results.length>0) {
+          for(let i = 1; i <= 10; i++){
+            const policyId = `policyid${i}`;
+             if (results[0][policyId]) {
+              activePoliciesObject[policyId] = results[0][policyId];
+            }
+          }
+         }
+         // Return the activePoliciesObject as the JSON response
+        return res.status(201).json(activePoliciesObject);
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({errMessage: "Internal server error"});
+  }
+});
+
+
+app.get('/displayConsultants', async (req, res) => {
+  try {
+    const query = `SELECT consultantid, consultantemail, consultantname, consultantnumber, consultantgender, hearfromus FROM consultantpersonaldetails`;
+    db.query(query, (err, results) => {
+      if (err) {
+        console.log({"first block err": err});
+        return res.status(500).json({ errMessage: "Internal server error" });
+      }
+      const consultantDetails = {};
+      for (let i = 0; i < results.length; i++) {
+        const consultant = results[i];
+        const consultantId = consultant.consultantid; 
+
+        consultantDetails[consultantId] = {
+          consultantname: consultant.consultantname,
+          consultantemail: consultant.consultantemail,
+          consultantnumber: consultant.consultantnumber,
+          consultantgender: consultant.consultantgender,
+          hearfromus: consultant.hearfromus
+        };
+      }      
+      return res.status(200).json(consultantDetails);
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ errMessage: "Internal server error" });
+  }
+});
+
+app.post('/postSelectConsultant', async (req, res) => {
+  const ClientEmail = req.body.PayloadClientEmail
+  const ConsultantEmail = req.body.PayloadConsultantEmail
+  try {
+      const query = 'INSERT INTO claimtable (clientemail, consultantemail) VALUES (?, ?)';
+       db.query(query, [ClientEmail, ConsultantEmail], (err, results) => {
+        if (err) {
+          console.error(err);
+          res.status(500).send('MySQL error: ${err.message}');
+        } else {
+          res.status(200).send('Data inserted successfully');
+        }
+      });
+    }catch(err){
+
+  }
+});
+
+app.post('/checkSelectedConsultant', async (req, res) => {
+  const ClientEmail = req.body.clientEmail;
+  try {
+    const query = `SELECT consultantemail FROM claimtable WHERE clientemail = ?`;
+    db.query(query, [ClientEmail], (err, results) => {
+      if (err) {
+        console.log({"first block err": err});
+        return res.status(500).json({ errMessage: "Internal server error" });
+      } else if (results[0]) {
+        const ConEmail = results[0].consultantemail
+         const queryfind = `SELECT consultantid,consultantemail, consultantname, consultantnumber, consultantgender, hearfromus FROM consultantpersonaldetails WHERE consultantemail = ?`
+         db.query(queryfind, [ConEmail], (err, results) => {
+          if(err){
+            console.log({"first block err": err});
+            return res.status(500).json({ errMessage: "Internal server error" });
+          }else{
+            const consultantData = results[0];
+            console.log(consultantData); // Log the retrieved data
+            return res.status(201).json(consultantData);          }
+         })
+      } else {
+        // Handle the case when there are no results
+        res.status(404).json({ message: "No consultant found for this client email." });
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ errMessage: "Internal server error" });
+  }
+});
+ 
+
+

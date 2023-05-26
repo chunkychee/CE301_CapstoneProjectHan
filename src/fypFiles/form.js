@@ -148,7 +148,7 @@ export function SignUpDiv(){
               axios.post("http://localhost:3004/addinclientboughtpolicies", {
                 clientemail: input.clientemail,
               }),
-            ]);
+            ]); 
   
             if (response2.status === 201 && response3.status === 201) {
               navigate("/submitted");

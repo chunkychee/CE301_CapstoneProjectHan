@@ -25,7 +25,7 @@ JSX NOTES:
 12.#  the function below typically takes 3 parameters: 
   1) A string representing the SQL query you want to execute.
   const sql = "SELECT * FROM users WHERE id = ?"
-  2) values: ptional array or object containing the values to be inserted in the SQL query, 
+  2) values: an array or object containing the values to be inserted in the SQL query, 
       policyname: result.policyname,
       imageformat: result.imageformat,
       policyimage: result.policyimage,
@@ -46,7 +46,7 @@ db.query(sql, values, (err, results) => {
 res.status(500).json({ message/err/or what you want: "Policy has already been signed up this user" }); 
 FrontEnd will call to the front by holding it to (err)
 catch(err){
-  err.response.data.(message/or whatever you callyour msg holder)
+  err.response.data.(message/or whatever you call your msg holder)
 }
 
 13.#the .map() being used, it is an indication that the result will be a new array derived from the original array
@@ -263,3 +263,8 @@ export const UserProvider = ({ children }) => {
 export const useUser = () => {
   return useContext(UserContext);
 };
+ 
+things to learn:
+-reduce
+-promises
+-fetch json

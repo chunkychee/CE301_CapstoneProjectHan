@@ -6,6 +6,7 @@ import {RiMessage2Fill} from "react-icons/ri";
 import {useUser} from "../JWTuserDetails";
 import {useNavigate} from "react-router-dom";
 import {BsThreeDots} from "react-icons/bs";
+import axios from 'axios'
 
  export const UserSite = () => {
   const { loggedEmail, setLoggedEmail } = useUser();
@@ -20,20 +21,140 @@ import {BsThreeDots} from "react-icons/bs";
   })
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [greeting, setGreeting] = useState('');
+  const[ArrayConsultantDetails, setConsultantDetails] = useState([]);
+  const [SelectedConsultant, setSelectedConsultant] = useState(null);
+  const[RemoveBtn, setRemoveBtn]=useState(false)
 
+  const handleSelect = async(consultant) => {
+    setSelectedConsultant(consultant);
+    sessionStorage.setItem('SelectedConsultant', JSON.stringify(consultant));
+    console.log(consultant.ConsultantEmail)
+      try {
+        const response = await axios.post(`http://localhost:3004/postSelectConsultant`, {
+          PayloadClientEmail: sessionStorage.getItem('clientemail'),
+          PayloadConsultantEmail:(consultant.ConsultantEmail)
+      });
+      if (response.status === 200) {
+          console.log('Successfully posted data');
+      } else {
+          console.log('Error posting data');
+      }
+    } catch (error) {
+        console.error('Error posting data:', error);
+    }
+  };
+  
+  const ChooseConsultants = ({ consultant, onSelect }) => {
+    const handleSelect = () => {
+      onSelect(consultant);
+    }; 
+    return (
+      <div
+        className={`p-4 mb-4 border-2 rounded-lg ${
+          SelectedConsultant === consultant.ConsultantID ? 'border-green-500' : 'border-gray-300'
+        }`}
+      >
+        <h3 className="font-semibold">Consultant no{consultant.ConsultantID}</h3>
+        <p><strong>Email:</strong> {consultant.ConsultantEmail}</p>
+        <p><strong>Name:</strong> {consultant.ConsultantName}</p>
+        <p><strong>Number:</strong> {consultant.ConsultantNumber}</p>
+        <p><strong>Gender:</strong> {consultant.ConsultantGender}</p>
+        <p><strong>Hear From Us:</strong> {consultant.HearFromUs}</p>
+        {!SelectedConsultant  && !RemoveBtn && (
+          <button
+            className="mt-4 px-4 py-2 rounded-md bg-blue-500 text-white"
+            onClick={handleSelect}
+          >
+            Select Agent
+          </button>
+        )}
+      </div>
+    );
+  };
+  
  //1. useEffect will render what you put in the first argument.
  //2. useEffect will render what you put in the first argument,THEN will render again or not dependent on the dependencies in the array.
-  useEffect(() => {
-      const updateGreeting = () => {
-        setGreeting(HeaderGreeting());
-    };
-    updateGreeting(); // Set the initial greeting
-    const intervalId = setInterval(updateGreeting, 59000); // Update every 59000 milliseconds
+ useEffect(() => {
+  const updateGreeting = () => {
+    setGreeting(HeaderGreeting());
+  };
+  updateGreeting(); // Set the initial greeting
 
-    return () => {
-      clearInterval(intervalId); // Clean up the interval when the component unmounts
-    };
+  const intervalId = setInterval(updateGreeting, 59000); // Update every 59000 milliseconds
+
+  const fetchConsultantdetails = async () => {
+    try {
+      const response = await axios.get('http://localhost:3004/displayConsultants');
+      if (response.data) { 
+        const results = response.data;
+        const newConsultantDetails = [];
+        for (let i = 1; i <= Object.keys(results).length; i++) {
+          const consultantDetail = {  
+            ConsultantID: i,
+            ConsultantEmail: results[i].consultantemail,
+            ConsultantName: results[i].consultantname,
+            ConsultantNumber: results[i].consultantnumber,
+            ConsultantGender: results[i].consultantgender,
+            HearFromUs: results[i].hearfromus,
+          };
+          newConsultantDetails.push(consultantDetail);
+        } 
+        setConsultantDetails(newConsultantDetails);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const fetchSelectedConsultant = async () => { 
+    try {
+      const response = await axios.post(`http://localhost:3004/checkSelectedConsultant`,{
+        clientEmail: sessionStorage.getItem('clientemail')
+      });
+      if (response.data) { 
+        const results = [response.data];
+        const consultantDetail = {  
+          ConsultantID: results[0].consultantid,
+          ConsultantEmail: results[0].consultantemail,
+          ConsultantName: results[0].consultantname,
+          ConsultantNumber: results[0].consultantnumber,
+          ConsultantGender: results[0].consultantgender,
+          HearFromUs: results[0].hearfromus,
+        }
+        const arrayedRetrieveCon = [consultantDetail]
+        setConsultantDetails(arrayedRetrieveCon);
+        setRemoveBtn(true)
+        return true; // return true if data was found
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+    return false; // return false if no data was found
+  };
+  
+  // First check if a selected consultant already exists in the session storage
+  const storedSelectedConsultant = JSON.parse(sessionStorage.getItem('SelectedConsultant'));
+
+  if (storedSelectedConsultant) {
+    // If selected consultant is in the session storage, set it in your state
+    setSelectedConsultant(storedSelectedConsultant);
+  } else {
+    // If not, fetch the selected consultant from the DB
+    fetchSelectedConsultant()
+      .then((dataFound) => {
+        // If no selected consultant is returned from DB, fetch the consultant details
+        if (!dataFound) {
+          fetchConsultantdetails();
+        }
+      })
+      .catch((err) => console.error('Error fetching selected consultant:', err));
+  }
+
+  return () => {
+    clearInterval(intervalId); // Clean up the interval when the component unmounts
+  };
 }, []);
+
 
 const HeaderGreeting = () => {
   const currentHour = new Date().getHours();
@@ -64,8 +185,6 @@ const HeaderGreeting = () => {
       navigate("/usersite");
     }else if(click ==="policies"){
       navigate("/policies");
-    }else if(click ==="Services"){
-      navigate("/services");
     }else if(click ==="Messages"){
       navigate("/messages");
     }else if(click ==="buypolicies"){
@@ -82,7 +201,7 @@ const HeaderGreeting = () => {
    } 
  }
   return (
-  <div className="fixed h-screen w-screen flex justify-center items-center">
+  <div className="fixed top-0 left-0 right-0 bottom-0 flex justify-center items-start">
     <div className="static h-full w-5/6 bg-blue-200 flex">
       <div className="fixed border-r-2 border-black flex-initial w-64 flex place-items-center gap-4 flex-col h-full">
         <div>
@@ -109,11 +228,7 @@ const HeaderGreeting = () => {
                     </ul>
                   </div>
                 )}
-          </div>
-          <div onClick={nav} name ="Services">
-            <GoFileSubmodule className="font-sans text-4xl absolute -mx-10"/>
-            <span  onClick={nav} className="font-sans text-3xl ml-5">Services</span>
-          </div>
+          </div> 
           <div name ="Messages" onClick={nav}>
             <RiMessage2Fill className="font-sans text-4xl absolute -mx-10" />
             <span className="font-sans text-3xl ml-5">Messages</span>
@@ -148,15 +263,40 @@ const HeaderGreeting = () => {
           </div>
         </div>
       </div>
-      <div className="relative left-72 h-32 w-32">
-        <div className="flex w-48 flex-col space-y-2">
+      <div className="flex flex-col flex-grow pl-72 pr-10 py-10">
+        <div className="flex w-51 flex-col">
           <h1 className="text-5xl font-light">{greeting}!</h1>
           <span className="font-bold font-sans text-3xl">{clientName}</span>
+          <div className="flex-1 overflow-auto max-h-[calc(100vh-200px)]">
+              {SelectedConsultant === null? (
+                <> 
+                  {ArrayConsultantDetails.map((consultant) => (
+                    <ChooseConsultants
+                      key={consultant.ConsultantID}
+                      consultant={consultant}
+                      onSelect={handleSelect}
+                      SelectedConsultantId={SelectedConsultant}
+                    />
+                  ))}
+                </>
+              ) : (
+                <>
+                <div className="p-4 mb-4 border-2 rounded-lg border-green-500">
+                  <h3 className="font-semibold">Consultant no{SelectedConsultant.ConsultantID}</h3>
+                  <p><strong>Email:</strong> {SelectedConsultant.ConsultantEmail}</p>
+                  <p><strong>Name:</strong> {SelectedConsultant.ConsultantName}</p>
+                  <p><strong>Number:</strong> {SelectedConsultant.ConsultantNumber}</p>
+                  <p><strong>Gender:</strong> {SelectedConsultant.ConsultantGender}</p>
+                  <p><strong>Hear From Us:</strong> {SelectedConsultant.HearFromUs}</p>
+                </div>
+              </>
+            )}
+          </div>
         </div>
-        <div>
-          {/* Newsfeed div */}
-        </div> 
       </div>
     </div>
-  </div>  
-)}
+  </div>
+);
+}
+
+

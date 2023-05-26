@@ -27,9 +27,7 @@ import {BsThreeDots} from "react-icons/bs";
   const nav=(e)=>{
     const click = e.currentTarget.getAttribute('name')
     if(click === "Home"){
-      navigate("/usersite");
-    }else if(click ==="Services"){
-      navigate("/services");
+      navigate("/consite");
     }else if(click ==="Messages"){
       navigate("/messagescon");
     }else if(click === "log-out"){
@@ -57,10 +55,7 @@ import {BsThreeDots} from "react-icons/bs";
             <span className="font-sans text-3xl ml-5">Home</span>  
           </div>
 
-          <div onClick={nav} name ="Services">
-            <GoFileSubmodule className="font-sans text-4xl absolute -mx-10"/>
-            <span  onClick={nav} className="font-sans text-3xl ml-5">Services</span>
-          </div>
+           
           <div name ="Messages" onClick={nav}>
             <RiMessage2Fill className="font-sans text-4xl absolute -mx-10" />
             <span className="font-sans text-3xl ml-5">Messages</span>

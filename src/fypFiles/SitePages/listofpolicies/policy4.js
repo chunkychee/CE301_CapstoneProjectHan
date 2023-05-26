@@ -10,8 +10,8 @@ export function Policy4(){
     policyActive:"Active",
     errmsgMax9:"",
     errmsgCantEmpty:"",
-    userAlrdSignUp:""
-   });
+    userAlrdSignUp:"",
+    });
   const [policyNames, setPolicyNames] = useState()// policy details sent from server and stored in OBJ
   const [showNRICBox, setShowNRICBox] = useState(false);
    useEffect(() => {
@@ -30,7 +30,7 @@ export function Policy4(){
             pricemonthly: result.pricemonthly
           });
          }
-      } catch (error) {
+       } catch (error) {
         console.error('Error fetching data:', error);
       }
      };
@@ -44,41 +44,59 @@ export function Policy4(){
     return objectURL;
   }
 
-  const NRICsubmit = async (e)=>{
-    e.preventDefault()
-   if(policy4Data.NRIC !== null && policy4Data.NRIC !==""){
-     try{
+  const paymentPage = (e) => {
+    e.preventDefault();
+    if (policy4Data.NRIC !== null && policy4Data.NRIC !== "") {
         const retrieveClientEmail = sessionStorage.getItem("clientemail");
         const updatedPolicyData = {
           ...policy4Data,
           sessionEmail: retrieveClientEmail
         };
-        const responseNRIC = await axios.post('http://localhost:3004/NRICpolicies',
-        {sessionEmail: updatedPolicyData.sessionEmail,
-        NRIC: updatedPolicyData.NRIC,
-        policyid: updatedPolicyData.policyid,
-        policyActive: updatedPolicyData.policyActive})
-        if (responseNRIC.status === 201) {
-          setSubmitSuccess(true);
-          setpolicy4Data((prev) => ({
-            ...prev,
-             errmsgMax9:"",
-             errmsgCantEmpty: ""
-          })); 
-        }
-      }catch(err){
-        setpolicy4Data((prev) => ({
-          ...prev,
-          userAlrdSignUp: err.response.data.message
-        }));  
-      }
-    }else{
+         fetch('http://localhost:3004/checkout-session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            policyDetails: {
+              sessionEmail: updatedPolicyData.sessionEmail,
+              NRIC: updatedPolicyData.NRIC,
+              policyid: updatedPolicyData.policyid,
+              policyActive: updatedPolicyData.policyActive
+            },
+            policy1details: [{ id: policy4Data.policyid, name: policyNames.policyname, price: policyNames.pricemonthly, quantity: 1}]
+          }),
+        })
+        .then(async (res) => {
+          if (res.ok) return res.json();
+          const json = await res.json();
+          return Promise.reject(json);
+        })
+        .then(({ url }) => {
+          window.location = url;
+        })
+        .catch((e) => {
+          console.error(e);
+          if (e.incorrectNRIC) {
+            setpolicy4Data((prev) => ({
+              ...prev,
+              userAlrdSignUp: e.incorrectNRIC
+            }));
+          } else {
+            setpolicy4Data((prev) => ({
+              ...prev,
+              userAlrdSignUp: e.userAlrdSignUp
+            }));
+          }
+        });        
+    } else {
       setpolicy4Data((prev) => ({
         ...prev,
-        errmsgCantEmpty: "Input your NRIC before submitting",
-      }));    
-    } 
-   }
+        userAlrdSignUp: "Input your NRIC before submitting",
+       }));
+    }
+  }; 
+
   const NRICinput = (e)=>{
      const value = e.target.value
          setpolicy4Data((prev) => ({
@@ -121,16 +139,24 @@ export function Policy4(){
         </div>
         {!showNRICBox && (
         <div className="mt-8">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-600" onClick={() => setShowNRICBox(true)}>Sign up for this policy</button>
+          <button className="bg-blue-500 text-white px-4 py-2 rounded-md shadow-md hover:bg-blue-600" onClick={() => setShowNRICBox(true)}>Purchase policy</button>
         </div>
         )}
                {showNRICBox && (
                 <div className="relative bg-white p-4 rounded shadow-md">
                   <button
                     className="absolute top-1 right-1 text-gray-500 hover:text-gray-800"
-                    onClick={() => setShowNRICBox(false)}
+                    onClick={() => {
+                      setShowNRICBox(false);
+                      // additional useState here
+                      setpolicy4Data((prev) => ({
+                        ...prev,
+                        userAlrdSignUp: "",
+                        errmsgMax9:"",
+                        errmsgCantEmpty:""
+                      }));
+                    }}
                   >
-                  
                     <span className="font-bold text-3xl mr-4">x</span>
                   </button>
                   <div className="mb-4">
@@ -139,9 +165,7 @@ export function Policy4(){
                       NRIC:
                     </label>                    
                     {policy4Data.errmsgMax9 ? <span className='text-sm underline text-black'> {policy4Data.errmsgMax9}</span> : ""}<br/>
-                    <form onSubmit={NRICsubmit}>
-
-                    <input
+                     <input
                       type="text"
                       name="NRIC"
                       onChange={NRICinput}
@@ -150,18 +174,15 @@ export function Policy4(){
                     <div className="mb-1"> 
                     {policy4Data.errmsgCantEmpty ? <span className='text-red-500'> {policy4Data.errmsgCantEmpty}</span> : ""}<br/>                     
                     {policy4Data.userAlrdSignUp ? <span className='text-red-500'> {policy4Data.userAlrdSignUp}</span> : ""}<br/>                     
-
                     </div>
                     <div>
                       {submitSuccess ?  
                         <div>
                           <span className="text-2xl font-bold text-green-500 text-center block">Submission successful!</span>
-                        </div>: <button className="mt-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-20">Enter</button>
+                        </div>: <button className="mt-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-20" onClick={paymentPage}>Enter</button>
                       }
                     </div>
-                    </form>
-
-                  </div>
+                   </div>
                 </div>
               )}
       </div>
