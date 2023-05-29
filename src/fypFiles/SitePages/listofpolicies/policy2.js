@@ -23,7 +23,7 @@ export function Policy2(){
            const result = response.data[1];
             setPolicyNames({ 
             policyimage: result.policyimage.data,
-            imageformat:  result.imageformat,
+            imageformat: result.imageformat,
             policyname: result.policyname,
             policydescription: result.policydescription,
             policycoverage: result.policycoverage,

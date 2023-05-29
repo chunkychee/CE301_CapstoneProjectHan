@@ -1,8 +1,7 @@
 import {React,useState,useEffect} from "react";
 import {AiOutlineInsurance,AiTwotoneHome} from "react-icons/ai";
 import {ImBooks} from "react-icons/im";
-import {GoFileSubmodule} from "react-icons/go";
-import {RiMessage2Fill} from "react-icons/ri"; 
+ import {RiMessage2Fill} from "react-icons/ri"; 
 import {useUser} from "../JWTuserDetails";
 import {useNavigate} from "react-router-dom";
 import {BsThreeDots} from "react-icons/bs";
@@ -28,15 +27,17 @@ import axios from 'axios'
   const handleSelect = async(consultant) => {
     setSelectedConsultant(consultant);
     sessionStorage.setItem('SelectedConsultant', JSON.stringify(consultant));
+    sessionStorage.setItem('consultantemail',consultant.ConsultantEmail)
     console.log(consultant.ConsultantEmail)
       try {
         const response = await axios.post(`http://localhost:3004/postSelectConsultant`, {
           PayloadClientEmail: sessionStorage.getItem('clientemail'),
-          PayloadConsultantEmail:(consultant.ConsultantEmail)
+          PayloadConsultantEmail:(consultant.ConsultantEmail),
+          PayloadClientName:sessionStorage.getItem('clientname'),
       });
       if (response.status === 200) {
           console.log('Successfully posted data');
-      } else {
+       } else {
           console.log('Error posting data');
       }
     } catch (error) {
@@ -71,9 +72,7 @@ import axios from 'axios'
       </div>
     );
   };
-  
- //1. useEffect will render what you put in the first argument.
- //2. useEffect will render what you put in the first argument,THEN will render again or not dependent on the dependencies in the array.
+   
  useEffect(() => {
   const updateGreeting = () => {
     setGreeting(HeaderGreeting());
@@ -123,9 +122,10 @@ import axios from 'axios'
         }
         const arrayedRetrieveCon = [consultantDetail]
         setConsultantDetails(arrayedRetrieveCon);
+        sessionStorage.setItem('consultantemail', arrayedRetrieveCon[0].ConsultantEmail)
         setRemoveBtn(true)
         return true; // return true if data was found
-      }
+       }
     } catch (error) {
       console.error('Error fetching data:', error);
     }

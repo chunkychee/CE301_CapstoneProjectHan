@@ -244,6 +244,18 @@ app.put('/changeBuyPolicies', upload.fields([{ name: 'policyImage1', maxCount: 1
   }
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
 //--------------------CONSULTANT BACKEND SECTION/--------------------/////////////////////////////////
 //add into consultantlogindetails table
   app.post('/consultantlogindetails', async (req, res) => {
@@ -342,6 +354,80 @@ try {
   console.log(error);
   res.status(500).send({ error: error });
 }
+
+app.post('/checkClients', async (req, res) => {
+  const consultantEmail = req.body.consultantEmail;
+  const sql = `SELECT * FROM claimtable WHERE consultantemail = ?`;
+  try {
+    db.query(sql, [consultantEmail], (err, results) => {
+      if (err) {
+        res.status(500).json(err);
+      } else if(results.length === 0){
+        res.status(201).json({ NoClientsClaimMsg: "no client claims yet" });
+      } else {
+          const serverStoreClient = []
+          for (let i = 0; i < results.length; i++) {
+             let dateTime = new Date(results[i]['dateandtimecreated']);
+             let ClaimSubmitDate = new Date(results[i]['claimdate']);
+             let dateOnly = dateTime.toLocaleDateString();
+             let dateOnlyClaim = ClaimSubmitDate.toLocaleDateString();
+              ClientClaimsList = {
+                Claimid: results[i].claimid,
+                ClaimStatus: results[i].claimstatus,
+                ClaimDate: dateOnlyClaim,
+                ClaimImage: results[i].claimimage,
+                ImageFormat: results[i].imageformat,
+                ClaimAmount: results[i].claimamount,
+                PolicyId: results[i].policyid,
+                ClientEmail: results[i].clientemail,
+                ClientName: results[i].clientname,
+                DateCreated: dateOnly
+              } 
+            serverStoreClient.push(ClientClaimsList)
+          }
+           res.status(200).json(serverStoreClient);
+      }
+    });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+///change
+app.post('/ChangeClaimStatus', async (req, res) => {
+  const { claimId, clientEmail, consultantEmail, status } = req.body;
+
+  try {
+    const query = `SELECT * FROM claimtable WHERE claimid = ? AND consultantemail = ? AND clientemail = ?`;
+    db.query(query, [claimId, consultantEmail, clientEmail], (err, results) => {
+      if (err) {
+        console.error("First block error:", err);
+        return res.status(500).send({ message: "Internal server error" });
+      } 
+      if (results.length === 0) {
+        return res.status(404).send({ message: "No claim found with provided information." });
+      }
+      const queryUpdate = `UPDATE claimtable SET claimstatus = ? WHERE claimId = ? AND consultantemail = ? AND clientemail = ?`;
+      db.query(queryUpdate, [status, claimId, consultantEmail, clientEmail], (err, results) => {
+        if (err) {
+          console.error("Second block error:", err);
+          return res.status(500).send({ message: "Internal server error during update" });
+        }
+        return res.status(200).send({ message: "Claim status updated successfully" }); 
+      });
+    });
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    return res.status(500).send({ message: "Unexpected internal server error" });
+  }
+});
+
+
+
+
+
+
+
 
 //--------------------CLIENT BACKEND SECTION/--------------------/////////////////////////////////
 //CLIENT LOGIN  
@@ -612,13 +698,14 @@ app.get('/displayConsultants', async (req, res) => {
 app.post('/postSelectConsultant', async (req, res) => {
   const ClientEmail = req.body.PayloadClientEmail
   const ConsultantEmail = req.body.PayloadConsultantEmail
+  const ClientName = req.body.PayloadClientName
   try {
-      const query = 'INSERT INTO claimtable (clientemail, consultantemail) VALUES (?, ?)';
-       db.query(query, [ClientEmail, ConsultantEmail], (err, results) => {
-        if (err) {
-          console.error(err);
-          res.status(500).send('MySQL error: ${err.message}');
-        } else {
+      const query = 'INSERT INTO claimtable (clientemail,clientname, consultantemail) VALUES (?, ?,?)';
+       db.query(query, [ClientEmail,ClientName, ConsultantEmail], (err, results) => {
+          if (err) {
+            console.error(err);
+            res.status(500).send('MySQL error: ${err.message}');
+          } else {
           res.status(200).send('Data inserted successfully');
         }
       });
@@ -645,7 +732,8 @@ app.post('/checkSelectedConsultant', async (req, res) => {
           }else{
             const consultantData = results[0];
             console.log(consultantData); // Log the retrieved data
-            return res.status(201).json(consultantData);          }
+            return res.status(201).json(consultantData);          
+          }
          })
       } else {
         // Handle the case when there are no results
@@ -657,6 +745,82 @@ app.post('/checkSelectedConsultant', async (req, res) => {
     return res.status(500).json({ errMessage: "Internal server error" });
   }
 });
+
  
+  app.post('/Claims', upload.fields([{ name: 'policyImg', maxCount: 1 }]), async (req, res) => {
+    const policyidDate = req.body.policyidDate;
+    const policyidAmt = req.body.policyidAmt;
+    const policyImg = req.files['policyImg'] ? req.files['policyImg'][0] : null;
+    const policyidImgType = req.body.policyidImgType;
+    const sessionEmail = req.body.sessionEmail;
+    const sessionConEmail = req.body.sessionConEmail
+    const clientname = req.body.sessionClientName
+    const policyid = req.body.policyid;
+    try { 
+      const imageBuffer = policyImg ? policyImg.buffer : null;
+       const checkquery = `SELECT * FROM claimtable WHERE claimdate IS NOT NULL AND clientemail = ? AND consultantemail = ?`;
+      db.query(checkquery, [sessionEmail,sessionConEmail], (err, results) => {
+        if (err) {
+          console.log({"first block err": err});
+          return res.status(500).json({Err: "error" });
+        } else if (results.length === 0) { 
+            const UpdateQuery = `UPDATE claimtable SET claimdate = ?, claimimage = ?, imageformat = ?, claimamount = ?, policyid = ? WHERE clientemail = ? AND consultantemail = ?`;
+            db.query(UpdateQuery, [policyidDate, imageBuffer, policyidImgType, policyidAmt, policyid, sessionEmail,sessionConEmail], (err, results) => {
+              if (err) {
+                console.log({"second block err": err});
+                return res.status(500).json({Err: "error" });
+              } else {
+                console.log({"successfully went in": results});
+                return res.status(201).json({success: "Claim successfully submitted" });
+              }
+            });
+        } else{
+            const InsertQuery = `INSERT INTO claimtable (claimdate, claimimage, imageformat, claimamount, policyid, clientemail,clientname, consultantemail) VALUES (?,?, ?, ?, ?,?, ?, ?)`;
+            db.query(InsertQuery, [policyidDate, imageBuffer, policyidImgType, policyidAmt, policyid, sessionEmail,clientname, sessionConEmail], (err, results) => {
+              if (err) {
+                console.log({"third block err": err});
+                return res.status(500).json({Err: "error" });
+              } else{
+                return res.status(201).json({success: "successfully block 2" });
+              }
+            });
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ errMessage: "Internal server error" });
+    }
+});
 
 
+app.post('/fetchClaimStatus', async (req, res) => {
+  const ClientEmail = req.body.clientEmail;
+  try {
+    const query = `SELECT consultantemail FROM claimtable WHERE clientemail = ?`;
+    db.query(query, [ClientEmail], (err, results) => {
+      if (err) {
+        console.log({"first block err": err});
+        return res.status(500).json({ errMessage: "Internal server error" });
+      } else if (results[0]) {
+        const ConEmail = results[0].consultantemail
+         const queryfind = `SELECT consultantid,consultantemail, consultantname, consultantnumber, consultantgender, hearfromus FROM consultantpersonaldetails WHERE consultantemail = ?`
+         db.query(queryfind, [ConEmail], (err, results) => {
+          if(err){
+            console.log({"first block err": err});
+            return res.status(500).json({ errMessage: "Internal server error" });
+          }else{
+            const consultantData = results[0];
+            console.log(consultantData); // Log the retrieved data
+            return res.status(201).json(consultantData);          
+          }
+         })
+      } else {
+        // Handle the case when there are no results
+        res.status(404).json({ message: "No consultant found for this client email." });
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ errMessage: "Internal server error" });
+  }
+});

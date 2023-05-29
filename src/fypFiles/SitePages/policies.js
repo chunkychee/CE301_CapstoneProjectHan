@@ -35,9 +35,11 @@ import moment from 'moment';
 
   ////////////////////////claim forms///////////////////////////////
   const [ClaimPolicy, setClaimPolicy] = useState({
+    policyid:"",
     policyidDate: "",
     policyidAmt: "",
-    policyidImg:null,
+    policyImg:"",
+    policyidImgType:"",
     policyidImgBool:false,
     successMsg:""
   });
@@ -45,53 +47,73 @@ import moment from 'moment';
   const handleFileUpload = (e) => {
     const name = e.currentTarget.getAttribute('name')
     const value = e.target.value
-    console.log(value)
-    if(name === "policyDate"){
+     if(name === "policyDate"){
       const convertDate = moment(value).format('YYYY-MM-DD')
       setClaimPolicy((prev) => ({
         ...prev,
         policyidDate: convertDate
        }));
-       console.log(ClaimPolicy.policyidDate)
     }else if(name === "policyAmt"){
       setClaimPolicy((prev) => ({
         ...prev,
         policyidAmt: value
        }));
-       console.log(ClaimPolicy.policyidAmt)
-    }else if(e.target.files && e.target.files[0]){
-      const file = URL.createObjectURL(e.target.files[0]);
-      setClaimPolicy((prev) => ({
-        ...prev,
-        policyidImg: file,
-        policyidImgBool: true
-      }));
-       console.log(ClaimPolicy.policyidImg)
-    }
+    }else if(name === "policyImg"){
+      const imageData = e.target.files[0];
+      const imageformatMime = imageData.type; 
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        let imageAsURL = e.target.result; // This is your image as a base64 string
+        let blob = await (await fetch(imageAsURL)).blob();
+        setClaimPolicy((prev) => ({
+          ...prev,
+          policyImg: blob,
+          policyidImgType: imageformatMime,
+          policyidImgBool: true
+        }));
+      };
+      reader.readAsDataURL(imageData);
+    }    
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (ClaimPolicy.policyidDate && ClaimPolicy.policyidAmt && ClaimPolicy.policyidImg) {
+    if (ClaimPolicy.policyidDate && ClaimPolicy.policyidAmt && ClaimPolicy.policyImg && ClaimPolicy.policyidImgType !== "") {
       try {
-        const payloadClaims = await axios.post("http://localhost:3004/Claims", {
-          policyidDate: ClaimPolicy.policyidDate,
-          policyidAmt: ClaimPolicy.policyidAmt,
-          policyidImg: ClaimPolicy.policyidImg
-        }); 
+        const formData = new FormData();
+        for (const key in ClaimPolicy) {
+          formData.append(key, ClaimPolicy[key]);
+        }
+        const sessionEmail = sessionStorage.getItem('clientemail')
+        const sessionConEmail = sessionStorage.getItem('consultantemail')
+        const sessionClientName = sessionStorage.getItem('clientname')
+        formData.append('sessionEmail', sessionEmail);
+        formData.append('sessionConEmail', sessionConEmail);
+        formData.append('sessionClientName', sessionClientName);
+        const payloadClaims = await axios.post("http://localhost:3004/Claims", formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data' // Setting content type header
+          }
+        });
+  
         if (payloadClaims.status === 201) {
           setClaimPolicy((prev) => ({
             ...prev,
-            successMsg:""
+            successMsg: "Claim submitted! Your consultant will review it shortly."
           }));
         }
       } catch (err) {
         console.error("Error in one or more requests:", err);
       }
     } else {
-      // Handle validation error or incomplete form
+      setClaimPolicy((prev) => ({
+        ...prev,
+        successMsg: "An error occurred. Please submit again."
+      }));
     }
   };
+  
+  
   
 
   const PoliciesDropdown =()=>{
@@ -111,8 +133,6 @@ import moment from 'moment';
       navigate("/usersite");
     }else if(click ==="policies"){
       navigate("/policies");
-    }else if(click ==="Services"){
-      navigate("/services");
     }else if(click ==="Messages"){
       navigate("/messages");
     }else if(click ==="buypolicies"){
@@ -231,6 +251,7 @@ import moment from 'moment';
       break;
       }
     };
+
     useEffect(()=>{
     const fetchboughtpolicy = async () => {
     try {
@@ -302,12 +323,20 @@ import moment from 'moment';
           [name]: !prev[name],
           DropdownPolicyid2:false
         }));
+        setClaimPolicy((prev) => ({
+          ...prev,
+           policyid:1
+        }));
         break;
       case "DropdownPolicyid2":
         setsubDropdown((prev) => ({
           ...prev,
           [name]: !prev[name],
           DropdownPolicyid1:false
+        }));
+        setClaimPolicy((prev) => ({
+          ...prev,
+           policyid:2
         }));
         break;
       case "DropdownPolicyid3":
@@ -316,12 +345,20 @@ import moment from 'moment';
           [name]: !prev[name],
           DropdownPolicyid4:false
         }));
+        setClaimPolicy((prev) => ({
+          ...prev,
+           policyid:3
+        }));
         break;
       case "DropdownPolicyid4":
         setsubDropdown((prev) => ({
           ...prev,
           [name]: !prev[name],
           DropdownPolicyid3:false
+        }));
+        setClaimPolicy((prev) => ({
+          ...prev,
+           policyid:4
         }));
         break;
       case "DropdownPolicyid5":
@@ -330,12 +367,20 @@ import moment from 'moment';
           [name]: !prev[name],
           DropdownPolicyid6:false
         }));
+        setClaimPolicy((prev) => ({
+          ...prev,
+           policyid:5
+        }));
         break;
       case "DropdownPolicyid6":
         setsubDropdown((prev) => ({
           ...prev,
           [name]: !prev[name],
           DropdownPolicyid5:false
+        }));
+        setClaimPolicy((prev) => ({
+          ...prev,
+           policyid:6
         }));
         break;
       case "DropdownPolicyid7":
@@ -344,12 +389,20 @@ import moment from 'moment';
             [name]: !prev[name],
             DropdownPolicyid8:false
           }));
+          setClaimPolicy((prev) => ({
+            ...prev,
+             policyid:7
+          }));
         break;
       case "DropdownPolicyid8":
         setsubDropdown((prev) => ({
           ...prev,
           [name]: !prev[name],
           DropdownPolicyid7:false
+        }));
+        setClaimPolicy((prev) => ({
+          ...prev,
+           policyid:8
         }));
         break;
       case "DropdownPolicyid9":
@@ -358,6 +411,10 @@ import moment from 'moment';
             [name]: !prev[name],
             DropdownPolicyid10:false
           }));
+          setClaimPolicy((prev) => ({
+            ...prev,
+             policyid:9
+          }));
         break;
       case "DropdownPolicyid10":
           setsubDropdown((prev) => ({
@@ -365,29 +422,21 @@ import moment from 'moment';
           [name]: !prev[name],
           DropdownPolicyid9:false
         }));
+        setClaimPolicy((prev) => ({
+          ...prev,
+           policyid:10
+        }));
         break;  
-      case "DropdownPolicyid11":
-          setsubDropdown((prev) => ({
-            ...prev,
-            [name]: !prev[name],
-            DropdownPolicyid12:false
-          }));
-        break;
-      case "DropdownPolicyid12":
-          setsubDropdown((prev) => ({
-            ...prev,
-            [name]: !prev[name],
-            DropdownPolicyid11:false
-            }));
-        break;
         default:
         break;
      }
+ 
      setClaimPolicy((prev) => ({
       ...prev,
       policyidDate:"",
       policyidAmt:"",
-      policyidImg:null,
+      policyidImg:"",
+      policyidImgType:"",
       policyidImgBool:false
     }));
   };
@@ -494,10 +543,13 @@ return (
                               </div>
                               <div>
                                 <label htmlFor="claim-image" className="block text-sm font-medium text-gray-700">Claim Image:</label>
-                                <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyidImg} alt="Preview" className="w-24 h-24 mt-2" />}
+                                <input accept=".jpeg, .jpg, .png" type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
-                              <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                              
+                                  <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                            
+
                           </form>
                         </div>  
                   </div>
@@ -525,7 +577,7 @@ return (
                               <div>
                                 <label htmlFor="claim-image" className="block text-sm font-medium text-gray-700">Claim Image:</label>
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyidImg} alt="Preview" className="w-24 h-24 mt-2" />}
+                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
                               <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
                           </form>
@@ -568,7 +620,7 @@ return (
                               <div>
                                 <label htmlFor="claim-image" className="block text-sm font-medium text-gray-700">Claim Image:</label>
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyidImg} alt="Preview" className="w-24 h-24 mt-2" />}
+                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
                               <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
                           </form>
@@ -598,7 +650,7 @@ return (
                               <div>
                                 <label htmlFor="claim-image" className="block text-sm font-medium text-gray-700">Claim Image:</label>
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyidImg} alt="Preview" className="w-24 h-24 mt-2" />}
+                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
                               <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
                           </form>
@@ -630,7 +682,7 @@ return (
                         transition-transform bg-gray-100 p-4 rounded ${subDropdown.DropdownPolicyid5 ? 'block' : 'hidden'}`} 
                         > 
                           <form  onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} className="">
-                              <div>
+                             < div>
                                 <label htmlFor="claim-date" className="block text-sm font-medium text-gray-700">Claim Date:</label>
                                 <input type="date" name="policyDate" value={ClaimPolicy.policyidDate} onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                               </div>
@@ -641,7 +693,7 @@ return (
                               <div>
                                 <label htmlFor="claim-image" className="block text-sm font-medium text-gray-700">Claim Image:</label>
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyidImg} alt="Preview" className="w-24 h-24 mt-2" />}
+                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
                               <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
                           </form>
@@ -671,7 +723,7 @@ return (
                               <div>
                                 <label htmlFor="claim-image" className="block text-sm font-medium text-gray-700">Claim Image:</label>
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyidAmt} alt="Preview" className="w-24 h-24 mt-2" />}
+                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
                               <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
                           </form>
@@ -713,7 +765,7 @@ return (
                               <div>
                                 <label htmlFor="claim-image" className="block text-sm font-medium text-gray-700">Claim Image:</label>
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyidImg} alt="Preview" className="w-24 h-24 mt-2" />}
+                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
                               <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
                           </form>
@@ -742,7 +794,7 @@ return (
                               <div>
                                 <label htmlFor="claim-image" className="block text-sm font-medium text-gray-700">Claim Image:</label>
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyidImg} alt="Preview" className="w-24 h-24 mt-2" />}
+                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
                               <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
                           </form>
@@ -783,7 +835,7 @@ return (
                               <div>
                                 <label htmlFor="claim-image" className="block text-sm font-medium text-gray-700">Claim Image:</label>
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyidAmt} alt="Preview" className="w-24 h-24 mt-2" />}
+                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
                               <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
                           </form>
@@ -812,7 +864,7 @@ return (
                               <div>
                                 <label htmlFor="claim-image" className="block text-sm font-medium text-gray-700">Claim Image:</label>
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
-                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyidImg} alt="Preview" className="w-24 h-24 mt-2" />}
+                                {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
                               <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
                           </form>

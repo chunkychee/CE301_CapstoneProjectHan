@@ -201,7 +201,7 @@ export function SignUpConsultant(){
               <h3 className= "font-sans font- text-2xl rounded-full w-96 mt-3">Date of birth:<input name="DOB" type ="date" placeholder='Date of birth' onChange={handleEvent} ></input></h3>
               {coninput.DOB === ""?<span className='text-red-500'>{coninput.errors.errDOB}</span> :""}
               
-              <h3 className= "font-sans font- text-2xl w-96 mt-3">How did you find out about us?:<input name="hearfromus" placeholder='Where did you hear from us?' onChange={handleEvent}></input></h3><br/>
+              <h3 className= "font-sans font- text-2xl w-96 mt-3">What makes you want to join INsure-RIGHT?: <br/><input name="hearfromus" placeholder='Do indicate' onChange={handleEvent}></input></h3><br/>
               <div className='justify-center flex'>
                 <button className = "w-2/5 h-10 text-white font-semibold bg-green-700 rounded-full items-center"> SUBMIT</button>
               </div>

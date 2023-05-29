@@ -132,8 +132,6 @@ import {BsThreeDots} from "react-icons/bs";
       navigate("/usersite");
     }else if(click ==="policies"){
       navigate("/policies");
-    }else if(click ==="Services"){
-      navigate("/services");
     }else if(click ==="Messages"){
       navigate("/messages");
     }else if(click ==="buypolicies"){
@@ -227,10 +225,6 @@ import {BsThreeDots} from "react-icons/bs";
                     </ul>
                   </div>
                 )}
-          </div>
-          <div onClick={nav} name ="Services">
-            <GoFileSubmodule className="font-sans text-4xl absolute -mx-10"/>
-            <span  onClick={nav} className="font-sans text-3xl ml-5">Services</span>
           </div>
           <div name ="Messages" onClick={nav}>
             <RiMessage2Fill className="font-sans text-4xl absolute -mx-10" />

@@ -195,17 +195,13 @@ export const Adminsite = () => {
           for (const key in PolicyReview) {
             formData.append(key, PolicyReview[key]);
           }
-          for (let i = 0; i < 12; i++) {
-            const imageData = localStorage.getItem(`image${i}`);
-            formData.append(`image${i}`, imageData);
-          }
+         
            const response = await fetch('http://localhost:3004/changeBuyPolicies', {
             method: 'PUT',
             body: formData,
           });
           const result = await response.json(); 
-          console.log(result)
-          // Handle the response from the server
+           // Handle the response from the server
         } catch (err) {
           console.log(err.response);
         }
@@ -219,6 +215,8 @@ export const Adminsite = () => {
           if (/(policyImage(\d+))/.test(click)) {
             const [, fieldType, policyIndex] = matches;
             const imageData = e.target.files[0];
+            console.log( imageData)
+
             const imageformatMime = imageData.type; 
             const reader = new FileReader()
             reader.readAsDataURL(imageData);
@@ -230,6 +228,7 @@ export const Adminsite = () => {
               [`${fieldType}${policyIndex}`]: imageData, // Store the File object directly
               [`imageformat${policyIndex}`]: imageformatMime
             }));
+            //console.log(PolicyReview.policyImage1)
           } else {
             const [_, fieldType, policyIndex] = matches;
             setPolicyReview((prev) => ({
@@ -237,8 +236,7 @@ export const Adminsite = () => {
               [`${fieldType}${policyIndex}`]: input,
             }));
           }
-          console.log(PolicyReview)
-        }
+         }
       }
     
   return (

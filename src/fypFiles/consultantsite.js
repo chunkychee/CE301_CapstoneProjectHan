@@ -1,14 +1,16 @@
 import {React,useState,useEffect} from "react";
+import axios from 'axios'
 import {AiOutlineInsurance,AiTwotoneHome} from "react-icons/ai";
-import {GoFileSubmodule} from "react-icons/go";
-import {RiMessage2Fill} from "react-icons/ri"; 
+ import {RiMessage2Fill} from "react-icons/ri"; 
 import {useUser} from "./JWTuserDetails";
 import {useNavigate} from "react-router-dom";
 import {BsThreeDots} from "react-icons/bs";
+import Modal from 'react-modal';
+Modal.setAppElement('#root');
 
  export const ConSite = () => {
   const { consultantEmail, setConsultantEmail } = useUser();
-  const { consultantName, setConsultanteName } = useUser();
+  const { consultantName, setConsultantName } = useUser();
   const defaultImageURL = `${process.env.PUBLIC_URL}/defaultimage.png`;
   const [selectedImage, setSelectedImage] = useState(defaultImageURL);
   const navigate = useNavigate()
@@ -17,7 +19,96 @@ import {BsThreeDots} from "react-icons/bs";
     logoutt:false
   })
   const [greeting, setGreeting] = useState('');
+  const [ClientListArray,setClientListArray] = useState([])
+  const [ClickClaimImage, setClickClaimImage] = useState(null);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [claimStatuses, setClaimStatuses] = useState({});
 
+
+  const handleStatusChange = async (claimId, newStatus) => {
+    setClaimStatuses(prevStatuses => ({
+      ...prevStatuses,
+      [claimId]: newStatus
+    }));
+
+    const foundClient = ClientListArray.find(c => c.ClaimId === claimId);
+
+    if (!foundClient) {
+      // Handle the error if no client was found
+      console.error('No client found with this claim id:', claimId);
+      return;
+    }
+
+    // Define these variables before your API call
+    const clientEmail = foundClient.ClientEmail;
+    const consultantEmail = sessionStorage.getItem('consultantemail');
+    console.log('ClaimId:', claimId);
+    console.log('ClientListArray:', ClientListArray);
+    console.log(clientEmail, claimId, consultantEmail)
+    
+    // Make the API call to post the data
+    try {
+      console.log(clientEmail, consultantEmail, claimId)
+      const response = await axios.post('http://localhost:3004/ChangeClaimStatus', {
+        claimId: claimId,
+        clientEmail: clientEmail,
+        consultantEmail: consultantEmail,
+        status: newStatus
+      });
+
+       console.log('Data posted successfully:', response.data);
+    } catch (error) {
+      console.error('Error posting data:', error);
+    }
+  };
+
+  const openModal = (client) => {
+    setClickClaimImage(client);
+    setModalIsOpen(true);
+  };
+  const closeModal = () => {
+    setModalIsOpen(false);
+  };
+  const renderTableRows = () => {
+    return ClientListArray.map((client) => (
+      <tr key={client.ClaimId} className="border-2 border-black">
+        <td className="border-2 border-black">
+          <div className="flex">
+            <button
+              className={`mr-2 p-2 ${
+                claimStatuses[client.ClaimId] === 'valid' ? 'bg-green-500' : ''
+                }`}
+              onClick={() => handleStatusChange(client.ClaimId, 'valid')}
+            >
+              Valid
+            </button>
+            <button
+              className={`p-2 ${
+                claimStatuses[client.ClaimId] === 'reject' ? 'bg-red-500' : ''
+                }`}
+              onClick={() => handleStatusChange(client.ClaimId, 'reject')}
+            >
+              Reject
+            </button>
+          </div>
+        </td>
+        <td className="border-2 border-black">{client.ClaimId}</td>
+        <td className="border-2 border-black">{client.ClaimDate}</td>
+        <td className="border-2 border-black">
+          <img
+            src={createObjectURLFromBinary(client.ClaimImage, client.ImageFormat)}
+            alt="Claim" // Changed alt attribute to remove the ESLint warning
+            onClick={() => openModal(client)}
+          />
+        </td>
+        <td className="border-2 border-black">{client.ClaimAmount}</td>
+        <td className="border-2 border-black">{client.PolicyId}</td>
+        <td className="border-2 border-black">{client.ClientEmail}</td>
+        <td className="border-2 border-black">{client.ClientName}</td>
+        <td className="border-2 border-black">{client.DateCreated}</td>
+      </tr>
+    ));
+  };
  //1. useEffect will render what you put in the first argument.
  //2. useEffect will render what you put in the first argument,THEN will render again or not dependent on the dependencies in the array.
   useEffect(() => {
@@ -26,11 +117,57 @@ import {BsThreeDots} from "react-icons/bs";
     };
     updateGreeting(); // Set the initial greeting
     const intervalId = setInterval(updateGreeting, 59000); // Update every 59000 milliseconds
-
+    
     return () => {
       clearInterval(intervalId); // Clean up the interval when the component unmounts
     };
 }, []);
+
+  useEffect(() => {
+    const fetchClient = async () => { 
+      try {
+          const response = await axios.post(`http://localhost:3004/checkClients`,{
+          consultantEmail: sessionStorage.getItem('consultantemail')
+        });
+        if (response.data) { 
+          const results = response.data
+            const arrayClient = []
+            for (let i = 0; i < results.length; i++) {
+                const client = {
+                  ClaimId: results[i].Claimid,
+                  ClaimStatus: results[i].ClaimStatus,
+                  ClaimDate: results[i].ClaimDate, //date of the accident happening
+                  ClaimImage: results[i].ClaimImage,
+                  ImageFormat: results[i].ImageFormat,//dont need in FE
+                  ClaimAmount: results[i].ClaimAmount,
+                  PolicyId: results[i].PolicyId,
+                  ClientEmail: results[i].ClientEmail,
+                  ClientName: results[i].ClientName,
+                  DateCreated: results[i].DateCreated
+                }
+                arrayClient.push(client) 
+              }
+              setClientListArray(arrayClient)
+              console.log(ClientListArray[0].ClaimId)
+          }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+      return false; // return false if no data was found
+    };
+    fetchClient()
+  }, []);
+
+
+const createObjectURLFromBinary = (binaryData, mimeType) => {
+  if (binaryData && binaryData.data) {
+    const arrayBuffer = new Uint8Array(binaryData.data).buffer;
+    const blob = new Blob([arrayBuffer], { type: mimeType });
+    const objectURL = URL.createObjectURL(blob);
+    return objectURL;
+  }
+  return null;
+};
 
 const HeaderGreeting = () => {
   const currentHour = new Date().getHours();
@@ -121,8 +258,43 @@ const HeaderGreeting = () => {
           <span className="font-bold font-sans text-3xl">{consultantName}</span>
         </div>
         <div>
-          {/* Newsfeed div */}
-        </div> 
+          <table className="border-collapse border-2 border-black">
+            <thead>
+              <tr className="border-2 border-black">
+                <th className = "border-2 border-black">Claim Status</th>
+                <th className = "border-2 border-black">Claim ID</th>
+                <th className = "border-2 border-black">Date of Claim</th>
+                <th className = "border-2 border-black">Claim Image</th>
+                <th className = "border-2 border-black">Claim Amount</th>
+                <th className = "border-2 border-black">Policy ID</th>
+                <th className = "border-2 border-black">Client Email</th>
+                <th className = "border-2 border-black">Client Name</th>
+                <th className = "border-2 border-black">Submitted Date</th>
+              </tr>
+            </thead>
+            <tbody>
+            {renderTableRows()}
+
+            </tbody>
+          </table>
+          <Modal
+              isOpen={modalIsOpen}
+              onRequestClose={closeModal}
+              contentLabel="Claim Image"
+            >
+              {ClickClaimImage && (
+                <img
+                src={createObjectURLFromBinary(
+                  ClickClaimImage.ClaimImage,
+                  ClickClaimImage.ImageFormat
+                )}
+                alt=""
+              />
+              
+              )}
+              <button onClick={closeModal}>Close</button>
+            </Modal>
+        </div>
       </div>
     </div>
   </div>  
