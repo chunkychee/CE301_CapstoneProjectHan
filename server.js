@@ -32,18 +32,16 @@ app.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, respo
   switch (event.type) {
     case 'checkout.session.completed':
       const checkoutSessionCompleted = event.data.object; 
-      console.log('Checkout session was completed!');
-      const userEmail = checkoutSessionCompleted.metadata.userEmail
+       const userEmail = checkoutSessionCompleted.metadata.userEmail
       const policyId = checkoutSessionCompleted.metadata.policyId
       const policyActive = checkoutSessionCompleted.metadata.policyActive
       const NRIC = checkoutSessionCompleted.metadata.NRIC
-      console.log(userEmail, policyId, policyActive, NRIC)
-      let sqlCheckNRIC = 'SELECT NRICnumber FROM clientboughtpolicies WHERE clientemail = ?';
+       let sqlCheckNRIC = 'SELECT NRICnumber FROM clientboughtpolicies WHERE clientemail = ?';
       db.query(sqlCheckNRIC, [userEmail], (err, result) => {
           if (err) {
               response.status(500).json({ message: "Internal server error", error: err });
           } else {
-              if (result[0].NRICnumber == null) {
+               if (result[0].NRICnumber == null) {
                   let sqlUpdatePolicy = `UPDATE clientboughtpolicies SET policyid${policyId} = ?, NRICnumber = ? WHERE clientemail = ?`;
                   db.query(sqlUpdatePolicy, [policyActive, NRIC, userEmail], (err, result) => {
                       if (err) {
@@ -177,7 +175,7 @@ app.get('/getpolicyname/policynames', async (req, res) => {
 
       // Return the array of policy names as the JSON response
       res.status(200).json(policyNames);
-    });
+     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -565,10 +563,8 @@ app.post('/checkout-session', async (req, res) => {
           policyid: req.body.policyDetails.policyid,
           policyActive: req.body.policyDetails.policyActive
         }
-        
-        const policyColumn = `policyid${NRICdetails.policyid}`;
+         const policyColumn = `policyid${NRICdetails.policyid}`;
         const sqlCheckNull = `SELECT * FROM clientboughtpolicies WHERE clientemail = ? AND NRICnumber IS NULL`
-
         db.query(sqlCheckNull, [NRICdetails.sessionEmail], async (err, result) => {
           if(err){
             console.log('Error querying for policy:', err);
@@ -591,7 +587,7 @@ app.post('/checkout-session', async (req, res) => {
                     const session = await createStripeSession(req);
                     res.json({ url: session.url });
                   }
-                })
+                }) 
               }
             }); 
           }else{
@@ -618,7 +614,7 @@ async function createStripeSession(req) {
       price_data: {
         currency: 'sgd',
         product_data: {
-          name:req.body.policy1details[0].name,
+          name:req.body.policy1details[0].name
         },
         unit_amount: req.body.policy1details[0].price * 100,
       },
@@ -634,7 +630,8 @@ async function createStripeSession(req) {
       NRIC: req.body.policyDetails.NRIC
      }, 
   });
-}
+ }
+
 app.post('/showPurchasePolicies', async (req, res) => {
   try {
     const query = `SELECT ${Array.from({ length: 10 }, (_, i) => `policyid${i + 1}`).join(', ')} FROM clientboughtpolicies WHERE clientemail = ?`;
@@ -731,8 +728,7 @@ app.post('/checkSelectedConsultant', async (req, res) => {
             return res.status(500).json({ errMessage: "Internal server error" });
           }else{
             const consultantData = results[0];
-            console.log(consultantData); // Log the retrieved data
-            return res.status(201).json(consultantData);          
+             return res.status(201).json(consultantData);          
           }
          })
       } else {
@@ -745,78 +741,73 @@ app.post('/checkSelectedConsultant', async (req, res) => {
     return res.status(500).json({ errMessage: "Internal server error" });
   }
 });
+app.post('/Claims', upload.fields([{ name: 'policyImg', maxCount: 1 }]), (req, res) => {
+  const {
+    policyidDate,
+    policyidAmt,
+    policyidImgType,
+    sessionEmail,
+    sessionConEmail,
+    sessionClientName,
+    policyid,
+  } = req.body;
+   const policyImg = req.files['policyImg'] ? req.files['policyImg'][0] : null;
 
- 
-  app.post('/Claims', upload.fields([{ name: 'policyImg', maxCount: 1 }]), async (req, res) => {
-    const policyidDate = req.body.policyidDate;
-    const policyidAmt = req.body.policyidAmt;
-    const policyImg = req.files['policyImg'] ? req.files['policyImg'][0] : null;
-    const policyidImgType = req.body.policyidImgType;
-    const sessionEmail = req.body.sessionEmail;
-    const sessionConEmail = req.body.sessionConEmail
-    const clientname = req.body.sessionClientName
-    const policyid = req.body.policyid;
-    try { 
+  // Check if client has a consultant
+  db.query('SELECT * FROM claimtable WHERE clientemail = ?', sessionEmail, (err, consultantCheck) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ errMessage: "Internal server error" });
+    }
+    if (consultantCheck.length === 0) {
+       return res.json({ NoConsultantMsg: "Pick a consultant at the homepage before making a claim" });
+
+    } else {
       const imageBuffer = policyImg ? policyImg.buffer : null;
-       const checkquery = `SELECT * FROM claimtable WHERE claimdate IS NOT NULL AND clientemail = ? AND consultantemail = ?`;
-      db.query(checkquery, [sessionEmail,sessionConEmail], (err, results) => {
+      const checkquery = `SELECT * FROM claimtable WHERE claimdate IS NOT NULL AND clientemail = ? AND consultantemail = ?`;
+      db.query(checkquery, [sessionEmail, sessionConEmail], (err, results) => {
         if (err) {
           console.log({"first block err": err});
           return res.status(500).json({Err: "error" });
         } else if (results.length === 0) { 
-            const UpdateQuery = `UPDATE claimtable SET claimdate = ?, claimimage = ?, imageformat = ?, claimamount = ?, policyid = ? WHERE clientemail = ? AND consultantemail = ?`;
-            db.query(UpdateQuery, [policyidDate, imageBuffer, policyidImgType, policyidAmt, policyid, sessionEmail,sessionConEmail], (err, results) => {
-              if (err) {
-                console.log({"second block err": err});
-                return res.status(500).json({Err: "error" });
-              } else {
-                console.log({"successfully went in": results});
-                return res.status(201).json({success: "Claim successfully submitted" });
-              }
-            });
+          const UpdateQuery = `UPDATE claimtable SET claimdate = ?, claimimage = ?, imageformat = ?, claimamount = ?, policyid = ? WHERE clientemail = ? AND consultantemail = ?`;
+          db.query(UpdateQuery, [policyidDate, imageBuffer, policyidImgType, policyidAmt, policyid, sessionEmail, sessionConEmail], (err, results) => {
+            if (err) {
+              console.log({"second block err": err});
+              return res.status(500).json({Err: "error" });
+            } else {
+              console.log({"successfully went in": results});
+              return res.status(201).json({success: "Claim successfully submitted" });
+            }
+          });
         } else{
-            const InsertQuery = `INSERT INTO claimtable (claimdate, claimimage, imageformat, claimamount, policyid, clientemail,clientname, consultantemail) VALUES (?,?, ?, ?, ?,?, ?, ?)`;
-            db.query(InsertQuery, [policyidDate, imageBuffer, policyidImgType, policyidAmt, policyid, sessionEmail,clientname, sessionConEmail], (err, results) => {
-              if (err) {
-                console.log({"third block err": err});
-                return res.status(500).json({Err: "error" });
-              } else{
-                return res.status(201).json({success: "successfully block 2" });
-              }
-            });
+          const InsertQuery = `INSERT INTO claimtable (claimdate, claimimage, imageformat, claimamount, policyid, clientemail, clientname, consultantemail) VALUES (?,?, ?, ?, ?, ?, ?, ?)`;
+          db.query(InsertQuery, [policyidDate, imageBuffer, policyidImgType, policyidAmt, policyid, sessionEmail, sessionClientName, sessionConEmail], (err, results) => {
+            if (err) {
+              console.log({"third block err": err});
+              return res.status(500).json({Err: "error" });
+            } else{
+              return res.status(201).json({success: "Successfully block 2" });
+            }
+          });
         }
       });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ errMessage: "Internal server error" });
     }
+  });
 });
 
 
 app.post('/fetchClaimStatus', async (req, res) => {
-  const ClientEmail = req.body.clientEmail;
+  const ClientEmail = req.body.sessionEmail;
   try {
-    const query = `SELECT consultantemail FROM claimtable WHERE clientemail = ?`;
+    const query = `SELECT * FROM claimtable WHERE clientemail = ?`;
     db.query(query, [ClientEmail], (err, results) => {
       if (err) {
         console.log({"first block err": err});
         return res.status(500).json({ errMessage: "Internal server error" });
-      } else if (results[0]) {
-        const ConEmail = results[0].consultantemail
-         const queryfind = `SELECT consultantid,consultantemail, consultantname, consultantnumber, consultantgender, hearfromus FROM consultantpersonaldetails WHERE consultantemail = ?`
-         db.query(queryfind, [ConEmail], (err, results) => {
-          if(err){
-            console.log({"first block err": err});
-            return res.status(500).json({ errMessage: "Internal server error" });
-          }else{
-            const consultantData = results[0];
-            console.log(consultantData); // Log the retrieved data
-            return res.status(201).json(consultantData);          
-          }
-         })
-      } else {
-        // Handle the case when there are no results
-        res.status(404).json({ message: "No consultant found for this client email." });
+      } else{
+        console.log(results)
+        return res.status(201).json(results);          
       }
     });
   } catch (err) {

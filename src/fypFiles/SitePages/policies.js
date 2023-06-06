@@ -8,6 +8,8 @@ import { useUser } from "../JWTuserDetails";
 import {useNavigate} from "react-router-dom";
 import {BsThreeDots} from "react-icons/bs";
 import moment from 'moment';
+import Modal from 'react-modal';
+Modal.setAppElement('#root');
 
  export const Policies = () => {
   const { loggedEmail, setLoggedEmail } = useUser();
@@ -43,6 +45,7 @@ import moment from 'moment';
     policyidImgBool:false,
     successMsg:""
   });
+
    
   const handleFileUpload = (e) => {
     const name = e.currentTarget.getAttribute('name')
@@ -75,7 +78,6 @@ import moment from 'moment';
       reader.readAsDataURL(imageData);
     }    
   }
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (ClaimPolicy.policyidDate && ClaimPolicy.policyidAmt && ClaimPolicy.policyImg && ClaimPolicy.policyidImgType !== "") {
@@ -94,31 +96,40 @@ import moment from 'moment';
           headers: {
             'Content-Type': 'multipart/form-data' // Setting content type header
           }
-        });
-  
+        }); 
         if (payloadClaims.status === 201) {
           setClaimPolicy((prev) => ({
             ...prev,
             successMsg: "Claim submitted! Your consultant will review it shortly."
           }));
+        } else if (payloadClaims.data.NoConsultantMsg) {
+          setClaimPolicy((prev) => ({
+            ...prev,
+            successMsg: payloadClaims.data.NoConsultantMsg
+          }));
         }
       } catch (err) {
         console.error("Error in one or more requests:", err);
+        if (err.response && err.response.data.NoConsultantMsg) {
+          setClaimPolicy((prev) => ({
+            ...prev,
+            successMsg: err.response.data.NoConsultantMsg
+          }));
+        }
       }
     } else {
       setClaimPolicy((prev) => ({
         ...prev,
-        successMsg: "An error occurred. Please submit again."
+        successMsg: "Input all the fields and submit again."
       }));
     }
   };
   
   
-  
-
   const PoliciesDropdown =()=>{
     setDropdownVisible(prev => !prev);
   }
+
   //sidebar profile picture 
   const onImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -133,8 +144,6 @@ import moment from 'moment';
       navigate("/usersite");
     }else if(click ==="policies"){
       navigate("/policies");
-    }else if(click ==="Messages"){
-      navigate("/messages");
     }else if(click ==="buypolicies"){
       navigate("/Buypolicies");
     }else if(click === "log-out"){
@@ -253,40 +262,128 @@ import moment from 'moment';
     };
 
     useEffect(()=>{
-    const fetchboughtpolicy = async () => {
-    try {
-      const response = await fetch('http://localhost:3004/showPurchasePolicies',{
-        method:"POST",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          payload: {
-            sessionEmail: sessionStorage.getItem('clientemail')
-          }
+      const fetchboughtpolicy = async () => {
+      try {
+        const response = await fetch('http://localhost:3004/showPurchasePolicies',{
+          method:"POST",
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            payload: {
+              sessionEmail: sessionStorage.getItem('clientemail')
+            }
+          })
         })
-      })
-      const data = await response.json();//response=return res.status(201).json(activePoliciesObject);
-      console.log(data)
-      const entriesArray = Object.entries(data);//if you want an array of [key, value] pairs: objs in an array
-      for(let i = 0; i < entriesArray.length; i++){
-        if(entriesArray[i][1] === "Active"){
-          setsubDropdown((prev) => ({
-            ...prev,
-            retrievePolicy: {
-              ...prev.retrievePolicy,
-              [entriesArray[i][0]]: true,
-            },
-          }));
+        const data = await response.json();//response=return res.status(201).json(activePoliciesObject);
+        console.log(data)
+        const entriesArray = Object.entries(data);//if you want an array of [key, value] pairs: objs in an array
+        for(let i = 0; i < entriesArray.length; i++){
+          if(entriesArray[i][1] === "Active"){
+            setsubDropdown((prev) => ({
+              ...prev,
+              retrievePolicy: {
+                ...prev.retrievePolicy,
+                [entriesArray[i][0]]: true,
+              },
+            }));
+          }
         }
-      }
-      // Assuming response.data is an array and you want to set the state with the first policy object
-     } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-    };
-    fetchboughtpolicy(); 
+        // Assuming response.data is an array and you want to set the state with the first policy object
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      };
+
+      const fetchValidatedPolicies = async () => {
+        try {
+          const response = await fetch('http://localhost:3004/fetchClaimStatus',{
+            method:"POST",
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                sessionEmail: sessionStorage.getItem('clientemail')
+            })
+          })
+          const data = await response.json();//response=return res.status(201).json(activePoliciesObject);
+          const arrayClient = []
+          for(let i = 0; i < data.length; i++){
+            let dateTime = new Date(data[i]['dateandtimecreated']);
+            let ClaimSubmitDate = new Date(data[i]['claimdate']);
+            let dateOnly = dateTime.toLocaleDateString();
+            let dateOnlyClaim = ClaimSubmitDate.toLocaleDateString();
+             const client = {
+              ClaimId: data[i].claimid,
+              ClaimStatus: data[i].claimstatus,
+              ClaimDate: dateOnlyClaim,//date of the accident happening
+              ClaimImage: data[i].claimimage,
+              ImageFormat: data[i].imageformat,//dont need in FE
+              ClaimAmount: data[i].claimamount,
+              PolicyId: data[i].policyid,
+              ClientEmail: data[i].clientemail,
+              ClientName: data[i].clientname,
+              ConsultantEmail: data[i].consultantemail,
+              DateCreated: dateOnly
+            }
+             arrayClient.push(client) 
+           }
+           setRetrieveListArray(arrayClient) 
+           console.log(RetrieveListArray)
+          // Assuming response.data is an array and you want to set the state with the first policy object
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+        };
+     fetchValidatedPolicies();
+     fetchboughtpolicy(); 
   },[])
+
+  const [RetrieveListArray,setRetrieveListArray] = useState([])
+  const [modalIsOpen, setIsOpen] = useState(false);
+  const [clickedClaimImage, setClickedClaimImage] = useState(null);
+  
+  const openModal = (client) => {
+    setClickedClaimImage(client);
+    setIsOpen(true);
+  };
+   const closeModal = () => {
+    setIsOpen(false);
+  };
+
+  const renderTableRowsClient = () => {
+    
+    return RetrieveListArray.map((client,index) => (
+      <tr key={index} className="border-2 border-black">
+        <td className="border-2 border-black">{client.ClaimStatus}</td>
+        <td className="border-2 border-black">{client.ClaimId}</td>
+        <td className="border-2 border-black">{client.ClaimDate}</td>
+        <td className="border-2 border-black">
+        <img
+            src={createObjectURLFromBinary(client.ClaimImage, client.ImageFormat)}
+            alt="Claim"
+            onClick={() => openModal(client)}
+          />  
+        </td>
+        <td className="border-2 border-black">{client.ClaimAmount}</td>
+        <td className="border-2 border-black">{client.PolicyId}</td>
+        <td className="border-2 border-black">{client.ClientEmail}</td>
+        <td className="border-2 border-black">{client.ClientName}</td>        
+        <td className="border-2 border-black">{client.ConsultantEmail}</td>
+        <td className="border-2 border-black">{client.DateCreated}</td>
+      </tr>
+    ));
+  }
+
+  const createObjectURLFromBinary = (ClaimImage, ImageFormat) => {
+    if (ClaimImage && ClaimImage.data) {
+      const arrayBuffer = new Uint8Array(ClaimImage.data).buffer;
+      const blob = new Blob([arrayBuffer], { type: ImageFormat });
+      const objectURL = URL.createObjectURL(blob);
+      return objectURL;
+    }
+    return null;
+  };
 
  const [subDropdown, setsubDropdown] = useState({
     DropdownPolicyid1:false,
@@ -441,6 +538,8 @@ import moment from 'moment';
     }));
   };
 
+ 
+
 return (
   <div className="fixed h-screen w-screen flex justify-center items-center">
     <div className="fixed h-full w-5/6 bg-blue-200">
@@ -470,16 +569,7 @@ return (
                 </ul>
               </div>
             )}
-          </div>
-
-          <div onClick={nav} name="Services">
-            <GoFileSubmodule className="font-sans text-4xl absolute -mx-10"/>
-            <span onClick={nav} className="font-sans text-3xl ml-5">Services</span>
-          </div>
-          <div name="Messages" onClick={nav}>
-            <RiMessage2Fill className="font-sans text-4xl absolute -mx-10" />
-            <span className="font-sans text-3xl ml-5">Messages</span>
-          </div>
+          </div> 
         </div>
         <div className="m-3 relative mt-auto flex justify-content-center">
           <div className="w-2/5 h-16 border-4 border-solid border-cyan-300 rounded-full overflow-hidden">
@@ -545,11 +635,16 @@ return (
                                 <label htmlFor="claim-image" className="block text-sm font-medium text-gray-700">Claim Image:</label>
                                 <input accept=".jpeg, .jpg, .png" type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                                 {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
-                              </div>
-                              
-                                  <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
-                            
+                              </div> 
+                              {ClaimPolicy.successMsg && (
+                                <div className={ClaimPolicy.successMsg === "Claim submitted! Your consultant will review it shortly." ? "alert alert-success" : "alert alert-warning"}>
+                                  {ClaimPolicy.successMsg}
+                                </div>
+                              )}
 
+                              {ClaimPolicy.successMsg !== "Pick a consultant before making a claim" && (
+                                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                               )}  
                           </form>
                         </div>  
                   </div>
@@ -579,8 +674,15 @@ return (
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                                 {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
-                              <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
-                          </form>
+                              {ClaimPolicy.successMsg && (
+                                <div className={ClaimPolicy.successMsg === "Claim submitted! Your consultant will review it shortly." ? "alert alert-success" : "alert alert-warning"}>
+                                  {ClaimPolicy.successMsg}
+                                </div>
+                              )}
+
+                              {ClaimPolicy.successMsg !== "Pick a consultant before making a claim" && (
+                                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                               )}                           </form>
                         </div>  
                   </div>
                   )}
@@ -622,8 +724,15 @@ return (
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                                 {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
-                              <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
-                          </form>
+                              {ClaimPolicy.successMsg && (
+                                <div className={ClaimPolicy.successMsg === "Claim submitted! Your consultant will review it shortly." ? "alert alert-success" : "alert alert-warning"}>
+                                  {ClaimPolicy.successMsg}
+                                </div>
+                              )}
+
+                              {ClaimPolicy.successMsg !== "Pick a consultant before making a claim" && (
+                                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                               )}                           </form>
                         </div>  
                   </div>
                   )}
@@ -652,8 +761,15 @@ return (
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                                 {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
-                              <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
-                          </form>
+                              {ClaimPolicy.successMsg && (
+                                <div className={ClaimPolicy.successMsg === "Claim submitted! Your consultant will review it shortly." ? "alert alert-success" : "alert alert-warning"}>
+                                  {ClaimPolicy.successMsg}
+                                </div>
+                              )}
+
+                              {ClaimPolicy.successMsg !== "Pick a consultant before making a claim" && (
+                                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                               )}                           </form>
                         </div>  
                   </div>
                   )}
@@ -695,8 +811,15 @@ return (
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                                 {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
-                              <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
-                          </form>
+                              {ClaimPolicy.successMsg && (
+                                <div className={ClaimPolicy.successMsg === "Claim submitted! Your consultant will review it shortly." ? "alert alert-success" : "alert alert-warning"}>
+                                  {ClaimPolicy.successMsg}
+                                </div>
+                              )}
+
+                              {ClaimPolicy.successMsg !== "Pick a consultant before making a claim" && (
+                                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                               )}                           </form>
                         </div>  
                   </div>
                   )}
@@ -725,8 +848,15 @@ return (
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                                 {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
-                              <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
-                          </form>
+                              {ClaimPolicy.successMsg && (
+                                <div className={ClaimPolicy.successMsg === "Claim submitted! Your consultant will review it shortly." ? "alert alert-success" : "alert alert-warning"}>
+                                  {ClaimPolicy.successMsg}
+                                </div>
+                              )}
+
+                              {ClaimPolicy.successMsg !== "Pick a consultant before making a claim" && (
+                                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                               )}                           </form>
                         </div>  
                   </div>
                   )}
@@ -767,8 +897,15 @@ return (
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                                 {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
-                              <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
-                          </form>
+                              {ClaimPolicy.successMsg && (
+                                <div className={ClaimPolicy.successMsg === "Claim submitted! Your consultant will review it shortly." ? "alert alert-success" : "alert alert-warning"}>
+                                  {ClaimPolicy.successMsg}
+                                </div>
+                              )}
+
+                              {ClaimPolicy.successMsg !== "Pick a consultant before making a claim" && (
+                                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                               )}                           </form>
                         </div>  
                   </div>
                   )}
@@ -796,8 +933,15 @@ return (
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                                 {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
-                              <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
-                          </form>
+                              {ClaimPolicy.successMsg && (
+                                <div className={ClaimPolicy.successMsg === "Claim submitted! Your consultant will review it shortly." ? "alert alert-success" : "alert alert-warning"}>
+                                  {ClaimPolicy.successMsg}
+                                </div>
+                              )}
+
+                              {ClaimPolicy.successMsg !== "Pick a consultant before making a claim" && (
+                                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                               )}                           </form>
                         </div>  
                   </div>
                   )}
@@ -818,7 +962,7 @@ return (
                 {subDropdown.retrievePolicy.policyid9 && ( 
                    <div>
                       <div className="border-4 border-solid border-cyan-300 cursor-pointer" name="DropdownPolicyid9" onClick={subToggleDropdown}>
-                        <span className="font-sans text-3xl ml-5">Policy9y</span>
+                        <span className="font-sans text-3xl ml-5">Policy9</span>
                       </div> 
                       <div className={`transform transition-all duration-500 ease-in-out origin-top 
                         ${subDropdown.DropdownPolicyid9 ? 'scale-100 opacity-100' : 'scale-75 opacity-0'} 
@@ -837,8 +981,15 @@ return (
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                                 {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
-                              <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
-                          </form>
+                              {ClaimPolicy.successMsg && (
+                                <div className={ClaimPolicy.successMsg === "Claim submitted! Your consultant will review it shortly." ? "alert alert-success" : "alert alert-warning"}>
+                                  {ClaimPolicy.successMsg}
+                                </div>
+                              )}
+
+                              {ClaimPolicy.successMsg !== "Pick a consultant before making a claim" && (
+                                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                               )}                           </form>
                         </div>  
                   </div>
                   )}
@@ -866,8 +1017,15 @@ return (
                                 <input type="file" name="policyImg" onChange={handleFileUpload} className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                                 {ClaimPolicy.policyidImgBool && <img src={ClaimPolicy.policyImg} alt="Preview" className="w-24 h-24 mt-2" />}
                               </div>
-                              <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
-                          </form>
+                              {ClaimPolicy.successMsg && (
+                                <div className={ClaimPolicy.successMsg === "Claim submitted! Your consultant will review it shortly." ? "alert alert-success" : "alert alert-warning"}>
+                                  {ClaimPolicy.successMsg}
+                                </div>
+                              )}
+
+                              {ClaimPolicy.successMsg !== "Pick a consultant before making a claim" && (
+                                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
+                               )}                           </form>
                         </div>  
                   </div>
                   )}
@@ -876,6 +1034,38 @@ return (
             )}
           </div>
         </div>
+        <table className="mt-10 border-collapse border-2 border-black">
+            <thead>
+              <tr className="border-2 border-black">
+                <th className = "border-2 border-black">Claim Status</th>
+                <th className = "border-2 border-black">Claim ID</th>
+                <th className = "border-2 border-black">Date of Claim</th>
+                <th className = "border-2 border-black">Claim Image</th>
+                <th className = "border-2 border-black">Claim Amount</th>
+                <th className = "border-2 border-black">Policy ID</th>
+                <th className = "border-2 border-black">Client Email</th>
+                <th className = "border-2 border-black">Client Name</th>
+                <th className = "border-2 border-black">Consultant Email</th>
+                <th className = "border-2 border-black">Submitted Date</th>
+              </tr>
+            </thead>
+            <tbody>
+            {renderTableRowsClient()} 
+            </tbody>
+          </table>
+          <Modal
+              isOpen={modalIsOpen}
+              onRequestClose={closeModal}
+              contentLabel="Claim Image"
+            >
+              {clickedClaimImage && (
+                <img
+                  src={createObjectURLFromBinary(clickedClaimImage.ClaimImage, clickedClaimImage.ImageFormat)}
+                  alt=""
+                />
+              )}
+              <button onClick={closeModal}>Close</button>
+            </Modal>
       </div>
     </div>
   </div>

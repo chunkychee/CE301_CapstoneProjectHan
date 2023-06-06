@@ -2,8 +2,7 @@ import {React,useEffect,useState } from "react";
 import axios from 'axios'
 import {AiOutlineInsurance,AiTwotoneHome,} from "react-icons/ai";
 import { ImBooks } from "react-icons/im";
-import { GoFileSubmodule } from "react-icons/go";
-import { RiMessage2Fill } from "react-icons/ri"; 
+ import { RiMessage2Fill } from "react-icons/ri"; 
 import { useUser } from "../JWTuserDetails";
 import {useNavigate} from "react-router-dom";
 import {BsThreeDots} from "react-icons/bs";
@@ -131,9 +130,7 @@ import {BsThreeDots} from "react-icons/bs";
     if(click === "Home"){
       navigate("/usersite");
     }else if(click ==="policies"){
-      navigate("/policies");
-    }else if(click ==="Messages"){
-      navigate("/messages");
+      navigate("/policies");       
     }else if(click ==="buypolicies"){
       navigate("/Buypolicies");
     }else if(click === "log-out"){
@@ -225,10 +222,6 @@ import {BsThreeDots} from "react-icons/bs";
                     </ul>
                   </div>
                 )}
-          </div>
-          <div name ="Messages" onClick={nav}>
-            <RiMessage2Fill className="font-sans text-4xl absolute -mx-10" />
-            <span className="font-sans text-3xl ml-5">Messages</span>
           </div>
         </div>
         <div className="m-3 relative mt-auto flex justify-content-center">  

@@ -24,7 +24,6 @@ Modal.setAppElement('#root');
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [claimStatuses, setClaimStatuses] = useState({});
 
-
   const handleStatusChange = async (claimId, newStatus) => {
     setClaimStatuses(prevStatuses => ({
       ...prevStatuses,
@@ -130,7 +129,7 @@ Modal.setAppElement('#root');
           consultantEmail: sessionStorage.getItem('consultantemail')
         });
         if (response.data) { 
-          const results = response.data
+            const results = response.data
             const arrayClient = []
             for (let i = 0; i < results.length; i++) {
                 const client = {
@@ -148,6 +147,7 @@ Modal.setAppElement('#root');
                 arrayClient.push(client) 
               }
               setClientListArray(arrayClient)
+              sessionStorage.setItem('clientListArray', JSON.stringify(arrayClient));
               console.log(ClientListArray[0].ClaimId)
           }
       } catch (error) {
@@ -155,8 +155,14 @@ Modal.setAppElement('#root');
       }
       return false; // return false if no data was found
     };
-    fetchClient()
-  }, []);
+    const clientData = sessionStorage.getItem('clientListArray');
+  
+    if(clientData) {
+      setClientListArray(JSON.parse(clientData));
+    } else {
+      fetchClient();
+    }
+    }, []);
 
 
 const createObjectURLFromBinary = (binaryData, mimeType) => {
@@ -192,8 +198,6 @@ const HeaderGreeting = () => {
     const click = e.currentTarget.getAttribute('name')
     if(click === "Home"){
       navigate("/consite");
-    }else if(click ==="Messages"){
-      navigate("/messagescon");
     }else if(click === "log-out"){
       sessionStorage.clear()
       navigate("/signin")
@@ -216,12 +220,7 @@ const HeaderGreeting = () => {
           <div type="button" onClick={nav} name ="Home">
             <AiTwotoneHome className="font-sans text-4xl absolute -mx-9"/>
             <span className="font-sans text-3xl ml-5">Home</span>  
-          </div>
-           
-          <div name ="Messages" onClick={nav}>
-            <RiMessage2Fill className="font-sans text-4xl absolute -mx-10" />
-            <span className="font-sans text-3xl ml-5">Messages</span>
-          </div>
+          </div> 
         </div>
         <div className="m-3 relative mt-auto flex justify-content-center">  
           <div className="w-2/5 h-16 border-4 border-solid border-cyan-300 rounded-full overflow-hidden">
@@ -274,7 +273,6 @@ const HeaderGreeting = () => {
             </thead>
             <tbody>
             {renderTableRows()}
-
             </tbody>
           </table>
           <Modal

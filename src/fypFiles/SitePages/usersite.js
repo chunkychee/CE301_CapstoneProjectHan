@@ -74,85 +74,85 @@ import axios from 'axios'
   };
    
  useEffect(() => {
-  const updateGreeting = () => {
-    setGreeting(HeaderGreeting());
-  };
-  updateGreeting(); // Set the initial greeting
+    const updateGreeting = () => {
+      setGreeting(HeaderGreeting());
+    };
+    updateGreeting(); // Set the initial greeting
 
-  const intervalId = setInterval(updateGreeting, 59000); // Update every 59000 milliseconds
+    const intervalId = setInterval(updateGreeting, 59000); // Update every 59000 milliseconds
 
-  const fetchConsultantdetails = async () => {
-    try {
-      const response = await axios.get('http://localhost:3004/displayConsultants');
-      if (response.data) { 
-        const results = response.data;
-        const newConsultantDetails = [];
-        for (let i = 1; i <= Object.keys(results).length; i++) {
-          const consultantDetail = {  
-            ConsultantID: i,
-            ConsultantEmail: results[i].consultantemail,
-            ConsultantName: results[i].consultantname,
-            ConsultantNumber: results[i].consultantnumber,
-            ConsultantGender: results[i].consultantgender,
-            HearFromUs: results[i].hearfromus,
-          };
-          newConsultantDetails.push(consultantDetail);
-        } 
-        setConsultantDetails(newConsultantDetails);
+    const fetchConsultantdetails = async () => {
+      try {
+        const response = await axios.get('http://localhost:3004/displayConsultants');
+        if (response.data) { 
+          const results = response.data;
+          const newConsultantDetails = [];
+          for (let i = 1; i <= Object.keys(results).length; i++) {
+            const consultantDetail = {  
+              ConsultantID: i,
+              ConsultantEmail: results[i].consultantemail,
+              ConsultantName: results[i].consultantname,
+              ConsultantNumber: results[i].consultantnumber,
+              ConsultantGender: results[i].consultantgender,
+              HearFromUs: results[i].hearfromus,
+            };
+            newConsultantDetails.push(consultantDetail);
+          } 
+          setConsultantDetails(newConsultantDetails);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
       }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
+    };
 
-  const fetchSelectedConsultant = async () => { 
-    try {
-      const response = await axios.post(`http://localhost:3004/checkSelectedConsultant`,{
-        clientEmail: sessionStorage.getItem('clientemail')
-      });
-      if (response.data) { 
-        const results = [response.data];
-        const consultantDetail = {  
-          ConsultantID: results[0].consultantid,
-          ConsultantEmail: results[0].consultantemail,
-          ConsultantName: results[0].consultantname,
-          ConsultantNumber: results[0].consultantnumber,
-          ConsultantGender: results[0].consultantgender,
-          HearFromUs: results[0].hearfromus,
+    const fetchSelectedConsultant = async () => { 
+      try {
+        const response = await axios.post(`http://localhost:3004/checkSelectedConsultant`,{
+          clientEmail: sessionStorage.getItem('clientemail')
+        });
+        if (response.data) { 
+          const results = [response.data];
+          const consultantDetail = {  
+            ConsultantID: results[0].consultantid,
+            ConsultantEmail: results[0].consultantemail,
+            ConsultantName: results[0].consultantname,
+            ConsultantNumber: results[0].consultantnumber,
+            ConsultantGender: results[0].consultantgender,
+            HearFromUs: results[0].hearfromus,
+          }
+          const arrayedRetrieveCon = [consultantDetail]
+          setConsultantDetails(arrayedRetrieveCon);
+          sessionStorage.setItem('consultantemail', arrayedRetrieveCon[0].ConsultantEmail)
+          setRemoveBtn(true)
+          return true; // return true if data was found
         }
-        const arrayedRetrieveCon = [consultantDetail]
-        setConsultantDetails(arrayedRetrieveCon);
-        sessionStorage.setItem('consultantemail', arrayedRetrieveCon[0].ConsultantEmail)
-        setRemoveBtn(true)
-        return true; // return true if data was found
-       }
-    } catch (error) {
-      console.error('Error fetching data:', error);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+      return false; // return false if no data was found
+    };
+    
+    // First check if a selected consultant already exists in the session storage
+    const storedSelectedConsultant = JSON.parse(sessionStorage.getItem('SelectedConsultant'));
+
+    if (storedSelectedConsultant) {
+      // If selected consultant is in the session storage, set it in your state
+      setSelectedConsultant(storedSelectedConsultant);
+    } else {
+      // If not, fetch the selected consultant from the DB
+      fetchSelectedConsultant()
+        .then((dataFound) => {
+          // If no selected consultant is returned from DB, fetch the consultant details
+          if (!dataFound) {
+            fetchConsultantdetails();
+          }
+        })
+        .catch((err) => console.error('Error fetching selected consultant:', err));
     }
-    return false; // return false if no data was found
-  };
-  
-  // First check if a selected consultant already exists in the session storage
-  const storedSelectedConsultant = JSON.parse(sessionStorage.getItem('SelectedConsultant'));
 
-  if (storedSelectedConsultant) {
-    // If selected consultant is in the session storage, set it in your state
-    setSelectedConsultant(storedSelectedConsultant);
-  } else {
-    // If not, fetch the selected consultant from the DB
-    fetchSelectedConsultant()
-      .then((dataFound) => {
-        // If no selected consultant is returned from DB, fetch the consultant details
-        if (!dataFound) {
-          fetchConsultantdetails();
-        }
-      })
-      .catch((err) => console.error('Error fetching selected consultant:', err));
-  }
-
-  return () => {
-    clearInterval(intervalId); // Clean up the interval when the component unmounts
-  };
+    return () => {
+      clearInterval(intervalId); // Clean up the interval when the component unmounts
+    };
 }, []);
 
 
@@ -185,9 +185,7 @@ const HeaderGreeting = () => {
       navigate("/usersite");
     }else if(click ==="policies"){
       navigate("/policies");
-    }else if(click ==="Messages"){
-      navigate("/messages");
-    }else if(click ==="buypolicies"){
+     }else if(click ==="buypolicies"){
       navigate("/Buypolicies");
     }else if(click === "log-out"){
       sessionStorage.clear()
@@ -200,6 +198,7 @@ const HeaderGreeting = () => {
       }));
    } 
  }
+
   return (
   <div className="fixed top-0 left-0 right-0 bottom-0 flex justify-center items-start">
     <div className="static h-full w-5/6 bg-blue-200 flex">
@@ -228,11 +227,7 @@ const HeaderGreeting = () => {
                     </ul>
                   </div>
                 )}
-          </div> 
-          <div name ="Messages" onClick={nav}>
-            <RiMessage2Fill className="font-sans text-4xl absolute -mx-10" />
-            <span className="font-sans text-3xl ml-5">Messages</span>
-          </div>
+          </div>  
         </div>
         <div className="m-3 relative mt-auto flex justify-content-center">  
           <div className="w-2/5 h-16 border-4 border-solid border-cyan-300 rounded-full overflow-hidden">

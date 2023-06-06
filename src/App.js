@@ -9,9 +9,7 @@ import {Signin} from './fypFiles/signin';
 import {UserSite} from './fypFiles/SitePages/usersite';
 import {ConSite} from './fypFiles/consultantsite';
 import {Policies} from './fypFiles/SitePages/policies';
-import {MessagesClient} from './fypFiles/SitePages/messagesClient';
-import {MessagesCon} from './fypFiles/SitePages/messagesCon';
-import {Buypolicies} from './fypFiles/SitePages/buypolicies';
+ import {Buypolicies} from './fypFiles/SitePages/buypolicies';
 import {Policy1} from './fypFiles/SitePages/listofpolicies/policy1';
 import {Policy2} from './fypFiles/SitePages/listofpolicies/policy2';
 import {Policy3} from './fypFiles/SitePages/listofpolicies/policy3';
@@ -56,9 +54,7 @@ function App(){
             <Route path ="/policy10" element={<Policy10/>}/>
             <Route path ="/policy11" element={<Policy11/>}/>
             <Route path ="/policy12" element={<Policy12/>}/>
-            <Route path ="/messagescon" element={<MessagesCon/>}/>
-            <Route path ="/messagesclient" element={<MessagesClient/>}/>
-            <Route path ="/Adminsite" element={<Adminsite/>}/>
+             <Route path ="/Adminsite" element={<Adminsite/>}/>
             <Route path ="/AdminLoginPage" element={<AdminLoginPage/>}/>
             <Route path ="/paymentErr" element={<PaymentErr/>}/>
             <Route path ="/paymentSuccess" element={<PaymentSuccess/>}/>
