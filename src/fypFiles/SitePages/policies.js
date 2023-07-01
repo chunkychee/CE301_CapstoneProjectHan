@@ -352,7 +352,6 @@ Modal.setAppElement('#root');
   };
 
   const renderTableRowsClient = () => {
-    
     return RetrieveListArray.map((client,index) => (
       <tr key={index} className="border-2 border-black">
         <td className="border-2 border-black">{client.ClaimStatus}</td>
@@ -600,7 +599,7 @@ return (
           </div>
         </div>
       </div>
-      <div className="relative left-72 place-self-center w-1/2">
+      <div className="relative left-72 place-self-center w-min h-screen overflow-y-auto">
         Open up to make your claims!
         <div className="flex flex-col space-y-2 border-4 border-solid border-black">
          <div className="border-4 border-solid border-cyan-300 cursor-pointer" name="Critical" onClick={toggleDropdown}>
@@ -1022,7 +1021,6 @@ return (
                                   {ClaimPolicy.successMsg}
                                 </div>
                               )}
-
                               {ClaimPolicy.successMsg !== "Pick a consultant before making a claim" && (
                                 <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Submit</button>
                                )}                           </form>
@@ -1034,25 +1032,27 @@ return (
             )}
           </div>
         </div>
-        <table className="mt-10 border-collapse border-2 border-black">
-            <thead>
-              <tr className="border-2 border-black">
-                <th className = "border-2 border-black">Claim Status</th>
-                <th className = "border-2 border-black">Claim ID</th>
-                <th className = "border-2 border-black">Date of Claim</th>
-                <th className = "border-2 border-black">Claim Image</th>
-                <th className = "border-2 border-black">Claim Amount</th>
-                <th className = "border-2 border-black">Policy ID</th>
-                <th className = "border-2 border-black">Client Email</th>
-                <th className = "border-2 border-black">Client Name</th>
-                <th className = "border-2 border-black">Consultant Email</th>
-                <th className = "border-2 border-black">Submitted Date</th>
-              </tr>
-            </thead>
-            <tbody>
-            {renderTableRowsClient()} 
-            </tbody>
-          </table>
+          <div className="overflow-y-auto max-h-screen mt-2 mb-2">
+              <table className="  border-2 border-black">
+                  <thead>
+                      <tr className="border-2 border-black">
+                          <th className="border-2 border-black">Claim Status</th>
+                          <th className="border-2 border-black">Claim ID</th>
+                          <th className="border-2 border-black">Date of Claim</th>
+                          <th className="border-2 border-black">Claim Image</th>
+                          <th className="border-2 border-black">Claim Amount</th>
+                          <th className="border-2 border-black">Policy ID</th>
+                          <th className="border-2 border-black">Client Email</th>
+                          <th className="border-2 border-black">Client Name</th>
+                          <th className="border-2 border-black">Consultant Email</th>
+                          <th className="border-2 border-black">Submitted Date</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {renderTableRowsClient()}
+                  </tbody>
+              </table>
+          </div>
           <Modal
               isOpen={modalIsOpen}
               onRequestClose={closeModal}

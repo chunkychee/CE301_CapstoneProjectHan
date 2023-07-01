@@ -256,7 +256,7 @@ const HeaderGreeting = () => {
           <h1 className="text-5xl font-light">{greeting}!</h1>
           <span className="font-bold font-sans text-3xl">{consultantName}</span>
         </div>
-        <div>
+        <div className = "h-screen overflow-y-auto w-min relative place-self-center">
           <table className="border-collapse border-2 border-black">
             <thead>
               <tr className="border-2 border-black">

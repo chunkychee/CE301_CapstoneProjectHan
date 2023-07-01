@@ -32,11 +32,11 @@ app.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, respo
   switch (event.type) {
     case 'checkout.session.completed':
       const checkoutSessionCompleted = event.data.object; 
-       const userEmail = checkoutSessionCompleted.metadata.userEmail
-      const policyId = checkoutSessionCompleted.metadata.policyId
+      const userEmail = checkoutSessionCompleted.metadata.userEmail
+      const policyId = checkoutSessionCompleted.metadata.policyId 
       const policyActive = checkoutSessionCompleted.metadata.policyActive
       const NRIC = checkoutSessionCompleted.metadata.NRIC
-       let sqlCheckNRIC = 'SELECT NRICnumber FROM clientboughtpolicies WHERE clientemail = ?';
+      let sqlCheckNRIC = 'SELECT NRICnumber FROM clientboughtpolicies WHERE clientemail = ?';
       db.query(sqlCheckNRIC, [userEmail], (err, result) => {
           if (err) {
               response.status(500).json({ message: "Internal server error", error: err });
@@ -46,9 +46,8 @@ app.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, respo
                   db.query(sqlUpdatePolicy, [policyActive, NRIC, userEmail], (err, result) => {
                       if (err) {
                           response.status(500).json({ message: "Internal server error", error: err });
-                      } else {
-                        //let queryToClaim = `UPDATE clientboughtpolicies SET policyid${policyId} = ?, NRICnumber = ? WHERE clientemail = ?`;
-                         
+                      }else{
+
                       }
                   });
               } else {
@@ -60,8 +59,6 @@ app.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, respo
                         db.query(sqlUpdatePolicy, [policyActive, NRIC, userEmail], (err, result) => {
                           if (err) {
                               response.status(500).json({ message: "Internal server error", error: err });
-                          } else {
-     
                           }
                       }); 
                     }
@@ -741,6 +738,7 @@ app.post('/checkSelectedConsultant', async (req, res) => {
     return res.status(500).json({ errMessage: "Internal server error" });
   }
 });
+
 app.post('/Claims', upload.fields([{ name: 'policyImg', maxCount: 1 }]), (req, res) => {
   const {
     policyidDate,
@@ -800,18 +798,19 @@ app.post('/Claims', upload.fields([{ name: 'policyImg', maxCount: 1 }]), (req, r
 app.post('/fetchClaimStatus', async (req, res) => {
   const ClientEmail = req.body.sessionEmail;
   try {
-    const query = `SELECT * FROM claimtable WHERE clientemail = ?`;
+    const query = `SELECT * FROM claimtable WHERE clientemail = ? AND ClaimDate IS NOT NULL`;
     db.query(query, [ClientEmail], (err, results) => {
-      if (err) {
-        console.log({"first block err": err});
-        return res.status(500).json({ errMessage: "Internal server error" });
-      } else{
-        console.log(results)
-        return res.status(201).json(results);          
-      }
+        if (err) {
+          console.log({"first block err": err});
+          return res.status(500).json({ errMessage: "Internal server error" });
+        } else {
+          console.log(results)
+          return res.status(201).json(results);
+        }
     });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ errMessage: "Internal server error" });
   }
 });
+
