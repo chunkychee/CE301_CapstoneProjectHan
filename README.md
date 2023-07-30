@@ -69,6 +69,9 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
 
+testing of STRIPE payment gateway:
+-launch ngrok, and tunnel from port 3004
+- copy paste the tunnelled URL and paste to stripe testing payment gateway with an endpoint of /webhook
 
 PERSONAL DIARY:	
 Things learnt in this project:	
